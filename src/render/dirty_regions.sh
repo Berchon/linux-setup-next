@@ -146,6 +146,46 @@ dirty_regions_rect_union() {
   printf '%s|%s|%s|%s\n' "${left}" "${top}" "$((right - left))" "$((bottom - top))"
 }
 
+dirty_regions_clip_rect() {
+  local x="$1"
+  local y="$2"
+  local width="$3"
+  local height="$4"
+  local start_x="${x}"
+  local start_y="${y}"
+  local end_x=0
+  local end_y=0
+
+  if ((dirty_regions_screen_width <= 0 || dirty_regions_screen_height <= 0)); then
+    return 1
+  fi
+
+  end_x=$((x + width))
+  end_y=$((y + height))
+
+  if ((start_x < 0)); then
+    start_x=0
+  fi
+
+  if ((start_y < 0)); then
+    start_y=0
+  fi
+
+  if ((end_x > dirty_regions_screen_width)); then
+    end_x="${dirty_regions_screen_width}"
+  fi
+
+  if ((end_y > dirty_regions_screen_height)); then
+    end_y="${dirty_regions_screen_height}"
+  fi
+
+  if ((start_x >= end_x || start_y >= end_y)); then
+    return 1
+  fi
+
+  printf '%s|%s|%s|%s\n' "${start_x}" "${start_y}" "$((end_x - start_x))" "$((end_y - start_y))"
+}
+
 dirty_regions_add() {
   local x="$1"
   local y="$2"
@@ -155,6 +195,7 @@ dirty_regions_add() {
   local region_y="${y}"
   local region_width="${width}"
   local region_height="${height}"
+  local clipped_rect=""
   local scan_idx=0
   local index=0
 
@@ -169,6 +210,11 @@ dirty_regions_add() {
   if ((width == 0 || height == 0)); then
     return 0
   fi
+
+  if ! clipped_rect="$(dirty_regions_clip_rect "${region_x}" "${region_y}" "${region_width}" "${region_height}")"; then
+    return 0
+  fi
+  IFS='|' read -r region_x region_y region_width region_height <<< "${clipped_rect}"
 
   while ((scan_idx < ${#dirty_regions_xs[@]})); do
     if dirty_regions_rects_overlap \
