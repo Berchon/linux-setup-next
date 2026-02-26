@@ -25,6 +25,33 @@ cell_buffer_cell_count() {
   printf '%s\n' "$((cell_buffer_width * cell_buffer_height))"
 }
 
+cell_buffer_set_cell_at_index() {
+  local buffer_name="$1"
+  local idx="$2"
+  local cell_char="$3"
+  local fg="$4"
+  local bg="$5"
+  local bold="$6"
+
+  case "${buffer_name}" in
+    front)
+      cell_front_chars[idx]="${cell_char}"
+      cell_front_fgs[idx]="${fg}"
+      cell_front_bgs[idx]="${bg}"
+      cell_front_bolds[idx]="${bold}"
+      ;;
+    back)
+      cell_back_chars[idx]="${cell_char}"
+      cell_back_fgs[idx]="${fg}"
+      cell_back_bgs[idx]="${bg}"
+      cell_back_bolds[idx]="${bold}"
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
 cell_buffer_index() {
   local x="$1"
   local y="$2"
@@ -105,6 +132,61 @@ cell_buffer_get_cell() {
       return 1
       ;;
   esac
+}
+
+cell_buffer_write_cell() {
+  local buffer_name="$1"
+  local x="$2"
+  local y="$3"
+  local cell_char="$4"
+  local fg="$5"
+  local bg="$6"
+  local bold="$7"
+  local idx=0
+
+  if ! idx="$(cell_buffer_index "${x}" "${y}")"; then
+    return 1
+  fi
+
+  if [[ -z "${cell_char}" ]]; then
+    cell_char="${cell_buffer_default_char}"
+  fi
+
+  cell_char="${cell_char:0:1}"
+  cell_buffer_set_cell_at_index "${buffer_name}" "${idx}" "${cell_char}" "${fg}" "${bg}" "${bold}"
+}
+
+cell_buffer_write_text() {
+  local buffer_name="$1"
+  local x="$2"
+  local y="$3"
+  local text="$4"
+  local fg="$5"
+  local bg="$6"
+  local bold="$7"
+  local text_len=0
+  local offset=0
+  local target_x=0
+  local char=""
+
+  if [[ ! "${x}" =~ ^-?[0-9]+$ ]] || [[ ! "${y}" =~ ^-?[0-9]+$ ]]; then
+    return 1
+  fi
+
+  if ((y < 0 || y >= cell_buffer_height)); then
+    return 0
+  fi
+
+  text_len="${#text}"
+  for ((offset = 0; offset < text_len; offset++)); do
+    target_x=$((x + offset))
+    if ((target_x < 0 || target_x >= cell_buffer_width)); then
+      continue
+    fi
+
+    char="${text:offset:1}"
+    cell_buffer_write_cell "${buffer_name}" "${target_x}" "${y}" "${char}" "${fg}" "${bg}" "${bold}"
+  done
 }
 
 cell_buffer_swap() {
