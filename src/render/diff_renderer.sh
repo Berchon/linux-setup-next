@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+diff_renderer_color_capacity=16
+
 declare -ag diff_renderer_changed_xs=()
 declare -ag diff_renderer_changed_ys=()
 declare -ag diff_renderer_run_xs=()
@@ -258,6 +260,45 @@ diff_renderer_normalize_color_16() {
   printf '%s\n' "$((color % 16))"
 }
 
+diff_renderer_normalize_color_256() {
+  local color="$1"
+
+  if [[ ! "${color}" =~ ^-?[0-9]+$ ]]; then
+    printf '0\n'
+    return 0
+  fi
+
+  if ((color < 0)); then
+    color=0
+  fi
+
+  if ((color > 255)); then
+    color=255
+  fi
+
+  printf '%s\n' "${color}"
+}
+
+diff_renderer_set_color_capacity() {
+  local requested="$1"
+
+  if [[ "${requested}" =~ ^[0-9]+$ ]] && ((requested >= 256)); then
+    diff_renderer_color_capacity=256
+    return 0
+  fi
+
+  diff_renderer_color_capacity=16
+}
+
+diff_renderer_refresh_color_capacity() {
+  if [[ -n "${runtime_color_capacity:-}" ]]; then
+    diff_renderer_set_color_capacity "${runtime_color_capacity}"
+    return 0
+  fi
+
+  diff_renderer_set_color_capacity 16
+}
+
 diff_renderer_style_sequence_16() {
   local fg_raw="$1"
   local bg_raw="$2"
@@ -290,6 +331,37 @@ diff_renderer_style_sequence_16() {
   printf '\033[22;%s;%sm' "${fg_code}" "${bg_code}"
 }
 
+diff_renderer_style_sequence_256() {
+  local fg_raw="$1"
+  local bg_raw="$2"
+  local bold="$3"
+  local fg=0
+  local bg=0
+
+  fg="$(diff_renderer_normalize_color_256 "${fg_raw}")"
+  bg="$(diff_renderer_normalize_color_256 "${bg_raw}")"
+
+  if [[ "${bold}" == "1" ]]; then
+    printf '\033[1;38;5;%s;48;5;%sm' "${fg}" "${bg}"
+    return 0
+  fi
+
+  printf '\033[22;38;5;%s;48;5;%sm' "${fg}" "${bg}"
+}
+
+diff_renderer_style_sequence() {
+  local fg="$1"
+  local bg="$2"
+  local bold="$3"
+
+  if ((diff_renderer_color_capacity >= 256)); then
+    diff_renderer_style_sequence_256 "${fg}" "${bg}" "${bold}"
+    return 0
+  fi
+
+  diff_renderer_style_sequence_16 "${fg}" "${bg}" "${bold}"
+}
+
 diff_renderer_render_dirty() {
   local run_count=0
   local run_index=0
@@ -307,6 +379,7 @@ diff_renderer_render_dirty() {
     return 1
   fi
 
+  diff_renderer_refresh_color_capacity
   diff_renderer_collect_runs
   run_count="$(diff_renderer_run_count)"
 
@@ -315,7 +388,7 @@ diff_renderer_render_dirty() {
     diff_renderer_emit_ansi "$(diff_renderer_cursor_sequence "${run_x}" "${run_y}")"
 
     if [[ "${run_fg}" != "${current_fg}" || "${run_bg}" != "${current_bg}" || "${run_bold}" != "${current_bold}" ]]; then
-      diff_renderer_emit_ansi "$(diff_renderer_style_sequence_16 "${run_fg}" "${run_bg}" "${run_bold}")"
+      diff_renderer_emit_ansi "$(diff_renderer_style_sequence "${run_fg}" "${run_bg}" "${run_bold}")"
       current_fg="${run_fg}"
       current_bg="${run_bg}"
       current_bold="${run_bold}"
