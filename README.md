@@ -1,0 +1,19 @@
+# linux-setup-next
+
+Novo projeto da TUI de setup Linux, desenvolvido em Bash puro, com foco em fluidez, componentização e renderização incremental (redesenhar apenas o que mudou).
+
+## Objetivo da V1
+Alcançar paridade funcional com a versão atual de referência, com arquitetura nova orientada a componentes e performance previsível.
+
+## Documentação
+- `docs/PRD.md`
+- `docs/ARQUITETURA.md`
+- `docs/BACKLOG.md`
+- `docs/PLANO_DE_TESTES.md`
+- `docs/PADROES_DE_ENGENHARIA.md`
+- `docs/MATRIZ_DE_RASTREABILIDADE.md`
+- `docs/PLANEJAMENTO_DE_ENTREGA.md`
+- `CHANGELOG.md`
+
+## Estado
+Documentação inicial criada. Implementação ainda não iniciada.
