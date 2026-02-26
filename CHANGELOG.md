@@ -31,3 +31,8 @@ Exemplos:
 - Cria entrypoint mínimo executável em `src/app/main.sh` com fluxo base de `main` e `cleanup` idempotente por `trap` (E0/H0.1/T0.1.2). [PR #1] [commit f592be5]
 - Adiciona `config/ui.conf.example` com todas as chaves obrigatórias da V1 para tema e idioma (E0/H0.1/T0.1.3). [PR #1] [commit b5e86f6]
 - Define carregador de módulos com ordem determinística em `src/app/bootstrap.sh`, integrado ao entrypoint em `main.sh` (E0/H0.1/T0.1.4). [PR #1] [commit bc87452]
+- Implementa alternate screen on/off no runtime com integração ao ciclo init/cleanup e teste unitário dedicado (E1/H1.1/T1.1.1). [PR #2] [commit 8e49ade]
+- Implementa input não-canônico sem echo com snapshot/restauração de `stty` e teste unitário de idempotência (E1/H1.1/T1.1.2). [PR #2] [commit 9a878b8]
+- Implementa traps `EXIT`, `INT`, `TERM` e `WINCH` no runtime com cleanup idempotente e cobertura unitária (E1/H1.1/T1.1.3). [PR #2] [commit f5b606c]
+- Implementa detecção de capacidades mínimas de terminal por capabilities (sem acoplamento ao nome de `TERM`) e perfil de cor base/256 com testes unitários (E1/H1.1/T1.1.4). [PR #2] [commit 0135136]
+- Define template oficial de descrição de PR e formaliza sua obrigatoriedade nos padrões de engenharia. [PR #2] [commit d798b7b]
