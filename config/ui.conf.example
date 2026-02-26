@@ -1,0 +1,22 @@
+# UI theme and behavior defaults for linux-setup-next V1.
+theme.wallpaper.enabled=true
+theme.wallpaper.fg=7
+theme.wallpaper.bg=0
+theme.menu.fg=15
+theme.menu.bg=4
+theme.menu.border_style=single
+theme.menu.shadow.enabled=true
+theme.modal.fg=15
+theme.modal.bg=0
+theme.modal.border_style=single
+theme.modal.shadow.enabled=true
+theme.toast.fg=0
+theme.toast.bg=3
+theme.toast.border_style=single
+theme.toast.shadow.enabled=true
+theme.toast.ttl_ms=2500
+theme.header.fg=15
+theme.header.bg=4
+theme.footer.fg=15
+theme.footer.bg=0
+app.language=pt
