@@ -224,3 +224,106 @@ diff_renderer_collect_runs() {
     done
   done
 }
+
+diff_renderer_emit_ansi() {
+  local sequence="$1"
+
+  if declare -F runtime_emit_ansi >/dev/null; then
+    runtime_emit_ansi "${sequence}"
+    return 0
+  fi
+
+  printf '%b' "${sequence}"
+}
+
+diff_renderer_cursor_sequence() {
+  local x="$1"
+  local y="$2"
+
+  printf '\033[%s;%sH' "$((y + 1))" "$((x + 1))"
+}
+
+diff_renderer_normalize_color_16() {
+  local color="$1"
+
+  if [[ ! "${color}" =~ ^-?[0-9]+$ ]]; then
+    printf '0\n'
+    return 0
+  fi
+
+  if ((color < 0)); then
+    color=0
+  fi
+
+  printf '%s\n' "$((color % 16))"
+}
+
+diff_renderer_style_sequence_16() {
+  local fg_raw="$1"
+  local bg_raw="$2"
+  local bold="$3"
+  local fg=0
+  local bg=0
+  local fg_code=30
+  local bg_code=40
+
+  fg="$(diff_renderer_normalize_color_16 "${fg_raw}")"
+  bg="$(diff_renderer_normalize_color_16 "${bg_raw}")"
+
+  if ((fg < 8)); then
+    fg_code=$((30 + fg))
+  else
+    fg_code=$((90 + fg - 8))
+  fi
+
+  if ((bg < 8)); then
+    bg_code=$((40 + bg))
+  else
+    bg_code=$((100 + bg - 8))
+  fi
+
+  if [[ "${bold}" == "1" ]]; then
+    printf '\033[1;%s;%sm' "${fg_code}" "${bg_code}"
+    return 0
+  fi
+
+  printf '\033[22;%s;%sm' "${fg_code}" "${bg_code}"
+}
+
+diff_renderer_render_dirty() {
+  local run_count=0
+  local run_index=0
+  local run_x=0
+  local run_y=0
+  local run_text=""
+  local run_fg=0
+  local run_bg=0
+  local run_bold=0
+  local current_fg=""
+  local current_bg=""
+  local current_bold=""
+
+  if ! declare -F cell_buffer_swap >/dev/null || ! declare -F dirty_regions_reset >/dev/null; then
+    return 1
+  fi
+
+  diff_renderer_collect_runs
+  run_count="$(diff_renderer_run_count)"
+
+  for ((run_index = 0; run_index < run_count; run_index++)); do
+    IFS='|' read -r run_x run_y run_text run_fg run_bg run_bold <<< "$(diff_renderer_get_run "${run_index}")"
+    diff_renderer_emit_ansi "$(diff_renderer_cursor_sequence "${run_x}" "${run_y}")"
+
+    if [[ "${run_fg}" != "${current_fg}" || "${run_bg}" != "${current_bg}" || "${run_bold}" != "${current_bold}" ]]; then
+      diff_renderer_emit_ansi "$(diff_renderer_style_sequence_16 "${run_fg}" "${run_bg}" "${run_bold}")"
+      current_fg="${run_fg}"
+      current_bg="${run_bg}"
+      current_bold="${run_bold}"
+    fi
+
+    diff_renderer_emit_ansi "${run_text}"
+  done
+
+  cell_buffer_swap
+  dirty_regions_reset
+}
