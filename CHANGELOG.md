@@ -35,3 +35,4 @@ Exemplos:
 - Implementa input não-canônico sem echo com snapshot/restauração de `stty` e teste unitário de idempotência (E1/H1.1/T1.1.2). [PR #2] [commit 9a878b8]
 - Implementa traps `EXIT`, `INT`, `TERM` e `WINCH` no runtime com cleanup idempotente e cobertura unitária (E1/H1.1/T1.1.3). [PR #2] [commit f5b606c]
 - Implementa detecção de capacidades mínimas de terminal por capabilities (sem acoplamento ao nome de `TERM`) e perfil de cor base/256 com testes unitários (E1/H1.1/T1.1.4). [PR #2] [commit 0135136]
+- Define template oficial de descrição de PR e formaliza sua obrigatoriedade nos padrões de engenharia. [PR #2] [commit d798b7b]
