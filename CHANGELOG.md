@@ -36,3 +36,4 @@ Exemplos:
 - Implementa traps `EXIT`, `INT`, `TERM` e `WINCH` no runtime com cleanup idempotente e cobertura unitária (E1/H1.1/T1.1.3). [PR #2] [commit f5b606c]
 - Implementa detecção de capacidades mínimas de terminal por capabilities (sem acoplamento ao nome de `TERM`) e perfil de cor base/256 com testes unitários (E1/H1.1/T1.1.4). [PR #2] [commit 0135136]
 - Define template oficial de descrição de PR e formaliza sua obrigatoriedade nos padrões de engenharia. [PR #2] [commit d798b7b]
+- Implementa estrutura de `Cell` e buffers front/back com inicialização, indexação e swap em `src/render/cell_buffer.sh` (E1/H1.2/T1.2.1). [PR #N/A] [commit N/A]
