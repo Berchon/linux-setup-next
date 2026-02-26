@@ -30,3 +30,4 @@ Exemplos:
 - Cria árvore inicial de diretórios base (`src/`, `config/`, `tests/`) para fundação do projeto (E0/H0.1/T0.1.1). [PR #N/A] [commit 99b4537]
 - Cria entrypoint mínimo executável em `src/app/main.sh` com fluxo base de `main` e `cleanup` idempotente por `trap` (E0/H0.1/T0.1.2). [PR #N/A] [commit N/A]
 - Adiciona `config/ui.conf.example` com todas as chaves obrigatórias da V1 para tema e idioma (E0/H0.1/T0.1.3). [PR #N/A] [commit N/A]
+- Define carregador de módulos com ordem determinística em `src/app/bootstrap.sh`, integrado ao entrypoint em `main.sh` (E0/H0.1/T0.1.4). [PR #N/A] [commit N/A]

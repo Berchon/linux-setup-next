@@ -4,6 +4,10 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
+readonly APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=src/app/bootstrap.sh
+source "${APP_DIR}/bootstrap.sh"
+
 cleanup_ran=0
 
 cleanup() {
@@ -27,6 +31,8 @@ on_terminate() {
 }
 
 main() {
+  bootstrap_load_default_modules
+  runtime_init
   printf 'linux-setup-next: bootstrap ready\n'
 }
 
