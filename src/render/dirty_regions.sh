@@ -63,11 +63,99 @@ dirty_regions_get() {
     "${dirty_regions_heights[index]}"
 }
 
+dirty_regions_remove_at() {
+  local index="$1"
+
+  if ! dirty_regions_is_non_negative_integer "${index}"; then
+    return 1
+  fi
+
+  if ((index >= ${#dirty_regions_xs[@]})); then
+    return 1
+  fi
+
+  unset 'dirty_regions_xs[index]'
+  unset 'dirty_regions_ys[index]'
+  unset 'dirty_regions_widths[index]'
+  unset 'dirty_regions_heights[index]'
+
+  dirty_regions_xs=("${dirty_regions_xs[@]}")
+  dirty_regions_ys=("${dirty_regions_ys[@]}")
+  dirty_regions_widths=("${dirty_regions_widths[@]}")
+  dirty_regions_heights=("${dirty_regions_heights[@]}")
+}
+
+dirty_regions_rects_overlap() {
+  local ax="$1"
+  local ay="$2"
+  local aw="$3"
+  local ah="$4"
+  local bx="$5"
+  local by="$6"
+  local bw="$7"
+  local bh="$8"
+  local a_right=0
+  local a_bottom=0
+  local b_right=0
+  local b_bottom=0
+
+  a_right=$((ax + aw))
+  a_bottom=$((ay + ah))
+  b_right=$((bx + bw))
+  b_bottom=$((by + bh))
+
+  if ((ax < b_right && bx < a_right && ay < b_bottom && by < a_bottom)); then
+    return 0
+  fi
+
+  return 1
+}
+
+dirty_regions_rect_union() {
+  local ax="$1"
+  local ay="$2"
+  local aw="$3"
+  local ah="$4"
+  local bx="$5"
+  local by="$6"
+  local bw="$7"
+  local bh="$8"
+  local left="${ax}"
+  local top="${ay}"
+  local right=0
+  local bottom=0
+
+  if ((bx < left)); then
+    left="${bx}"
+  fi
+
+  if ((by < top)); then
+    top="${by}"
+  fi
+
+  right=$((ax + aw))
+  if ((bx + bw > right)); then
+    right=$((bx + bw))
+  fi
+
+  bottom=$((ay + ah))
+  if ((by + bh > bottom)); then
+    bottom=$((by + bh))
+  fi
+
+  printf '%s|%s|%s|%s\n' "${left}" "${top}" "$((right - left))" "$((bottom - top))"
+}
+
 dirty_regions_add() {
   local x="$1"
   local y="$2"
   local width="$3"
   local height="$4"
+  local region_x="${x}"
+  local region_y="${y}"
+  local region_width="${width}"
+  local region_height="${height}"
+  local scan_idx=0
   local index=0
 
   if ! dirty_regions_is_integer "${x}" || ! dirty_regions_is_integer "${y}"; then
@@ -82,9 +170,36 @@ dirty_regions_add() {
     return 0
   fi
 
+  while ((scan_idx < ${#dirty_regions_xs[@]})); do
+    if dirty_regions_rects_overlap \
+      "${region_x}" \
+      "${region_y}" \
+      "${region_width}" \
+      "${region_height}" \
+      "${dirty_regions_xs[scan_idx]}" \
+      "${dirty_regions_ys[scan_idx]}" \
+      "${dirty_regions_widths[scan_idx]}" \
+      "${dirty_regions_heights[scan_idx]}"; then
+      IFS='|' read -r region_x region_y region_width region_height <<< "$(dirty_regions_rect_union \
+        "${region_x}" \
+        "${region_y}" \
+        "${region_width}" \
+        "${region_height}" \
+        "${dirty_regions_xs[scan_idx]}" \
+        "${dirty_regions_ys[scan_idx]}" \
+        "${dirty_regions_widths[scan_idx]}" \
+        "${dirty_regions_heights[scan_idx]}")"
+      dirty_regions_remove_at "${scan_idx}"
+      scan_idx=0
+      continue
+    fi
+
+    scan_idx=$((scan_idx + 1))
+  done
+
   index="${#dirty_regions_xs[@]}"
-  dirty_regions_xs[index]="${x}"
-  dirty_regions_ys[index]="${y}"
-  dirty_regions_widths[index]="${width}"
-  dirty_regions_heights[index]="${height}"
+  dirty_regions_xs[index]="${region_x}"
+  dirty_regions_ys[index]="${region_y}"
+  dirty_regions_widths[index]="${region_width}"
+  dirty_regions_heights[index]="${region_height}"
 }
