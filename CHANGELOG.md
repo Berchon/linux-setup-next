@@ -42,3 +42,7 @@ Exemplos:
 - Implementa registro de regiões sujas em `src/render/dirty_regions.sh` com API de inicialização, append, consulta e reset (E1/H1.3/T1.3.1). [PR #4] [commit 14a2b73]
 - Implementa merge automático de dirty regions sobrepostas (incluindo cadeias de sobreposição) para reduzir redraw redundante (E1/H1.3/T1.3.2). [PR #4] [commit 0882987]
 - Implementa clipping de dirty regions nos limites do viewport e descarte de regiões totalmente fora da tela (E1/H1.3/T1.3.3). [PR #4] [commit 86547c6]
+- Compara `front/back` exclusivamente dentro de dirty regions para reduzir o custo de diff por evento (E1/H1.4/T1.4.1). [PR #5] [commit 15d842d]
+- Agrupa células alteradas em runs contíguos por estilo (`fg/bg/bold`) para reduzir fragmentação de render (E1/H1.4/T1.4.2). [PR #5] [commit fc760d7]
+- Emite ANSI mínimo por run (cursor + estilo somente quando necessário), aplica flush e realiza `swap` de buffers com limpeza de dirty regions (E1/H1.4/T1.4.3). [PR #5] [commit fda9a2f]
+- Aplica política de cor baseada em capacidade (`16` cores base com upgrade para `256`) no diff renderer (E1/H1.4/T1.4.4). [PR #5] [commit 388ca0d]

@@ -36,3 +36,4 @@ Toda descrição de PR deve usar exatamente as seções abaixo:
 2. Citar IDs de backlog quando aplicável (`E#/H#/T#`).
 3. Em validação, listar comandos/casos realmente executados.
 4. Em impacto, informar risco e próximo passo imediato.
+5. A descrição de PR e o resumo devem ser entregues em Markdown.
