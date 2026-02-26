@@ -189,6 +189,68 @@ cell_buffer_write_text() {
   done
 }
 
+cell_buffer_clear_rect() {
+  local buffer_name="$1"
+  local x="$2"
+  local y="$3"
+  local width="$4"
+  local height="$5"
+  local start_x=0
+  local start_y=0
+  local end_x=0
+  local end_y=0
+  local current_x=0
+  local current_y=0
+  local idx=0
+
+  if [[ ! "${x}" =~ ^-?[0-9]+$ ]] || [[ ! "${y}" =~ ^-?[0-9]+$ ]]; then
+    return 1
+  fi
+
+  if [[ ! "${width}" =~ ^[0-9]+$ ]] || [[ ! "${height}" =~ ^[0-9]+$ ]]; then
+    return 1
+  fi
+
+  if ((width == 0 || height == 0)); then
+    return 0
+  fi
+
+  start_x="${x}"
+  start_y="${y}"
+  end_x=$((x + width))
+  end_y=$((y + height))
+
+  if ((start_x < 0)); then
+    start_x=0
+  fi
+  if ((start_y < 0)); then
+    start_y=0
+  fi
+  if ((end_x > cell_buffer_width)); then
+    end_x="${cell_buffer_width}"
+  fi
+  if ((end_y > cell_buffer_height)); then
+    end_y="${cell_buffer_height}"
+  fi
+
+  if ((start_x >= end_x || start_y >= end_y)); then
+    return 0
+  fi
+
+  for ((current_y = start_y; current_y < end_y; current_y++)); do
+    for ((current_x = start_x; current_x < end_x; current_x++)); do
+      idx=$((current_y * cell_buffer_width + current_x))
+      cell_buffer_set_cell_at_index \
+        "${buffer_name}" \
+        "${idx}" \
+        "${cell_buffer_default_char}" \
+        "${cell_buffer_default_fg}" \
+        "${cell_buffer_default_bg}" \
+        "${cell_buffer_default_bold}"
+    done
+  done
+}
+
 cell_buffer_swap() {
   local -a tmp_chars=("${cell_front_chars[@]}")
   local -a tmp_fgs=("${cell_front_fgs[@]}")
