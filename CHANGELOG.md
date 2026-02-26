@@ -28,3 +28,4 @@ Exemplos:
 - Estrutura documental inicial do projeto (`PRD`, arquitetura, backlog, testes, padrões, rastreabilidade e planejamento de entrega). [PR MAIN] [commit cb88534]
 - Definição de baseline técnico para V1 (Bash >= 4.0, terminal por capacidades, perfil base de 16 cores com upgrade para 256 cores quando disponível). [PR MAIN] [commit cb88534]
 - Cria árvore inicial de diretórios base (`src/`, `config/`, `tests/`) para fundação do projeto (E0/H0.1/T0.1.1). [PR #N/A] [commit 99b4537]
+- Cria entrypoint mínimo executável em `src/app/main.sh` com fluxo base de `main` e `cleanup` idempotente por `trap` (E0/H0.1/T0.1.2). [PR #N/A] [commit N/A]
