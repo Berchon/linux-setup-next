@@ -39,3 +39,6 @@ Exemplos:
 - Implementa estrutura de `Cell` e buffers front/back com inicialização, indexação e swap em `src/render/cell_buffer.sh` (E1/H1.2/T1.2.1). [PR #3] [commit 297e664]
 - Implementa operações base de escrita em buffer (`write_cell` e `write_text` com clipping horizontal) e testes unitários (E1/H1.2/T1.2.2). [PR #3] [commit 3359573]
 - Implementa limpeza por retângulo com clipping no viewport (`clear_rect`) e testes unitários de fronteira (E1/H1.2/T1.2.3). [PR #3] [commit 77e1dfb]
+- Implementa registro de regiões sujas em `src/render/dirty_regions.sh` com API de inicialização, append, consulta e reset (E1/H1.3/T1.3.1). [PR #4] [commit 14a2b73]
+- Implementa merge automático de dirty regions sobrepostas (incluindo cadeias de sobreposição) para reduzir redraw redundante (E1/H1.3/T1.3.2). [PR #4] [commit 0882987]
+- Implementa clipping de dirty regions nos limites do viewport e descarte de regiões totalmente fora da tela (E1/H1.3/T1.3.3). [PR #4] [commit 86547c6]
