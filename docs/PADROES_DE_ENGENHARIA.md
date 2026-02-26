@@ -84,6 +84,7 @@ Exemplos:
 3. Não misturar refatoração estrutural com feature sem necessidade.
 4. Deve atualizar obrigatoriamente o `CHANGELOG.md`.
 5. Entrada de changelog do PR deve conter referência ao número do PR e ao hash curto do commit principal.
+6. A descrição do PR deve seguir obrigatoriamente o template de `docs/PADRAO_DE_DESCRICAO_DE_PR.md`.
 
 ## 9. Revisão de código
 Checklist mínimo:
