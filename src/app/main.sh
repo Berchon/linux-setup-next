@@ -16,8 +16,9 @@ cleanup() {
   fi
 
   cleanup_ran=1
-  # Terminal teardown hooks will be connected in upcoming runtime tasks.
-  :
+  if declare -F runtime_shutdown >/dev/null 2>&1; then
+    runtime_shutdown
+  fi
 }
 
 on_interrupt() {
