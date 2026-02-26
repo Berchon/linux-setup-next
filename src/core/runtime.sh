@@ -3,6 +3,8 @@
 runtime_alt_screen_enabled=0
 runtime_input_mode_enabled=0
 runtime_saved_stty=""
+runtime_cleanup_ran=0
+runtime_resize_pending=0
 
 runtime_emit_ansi() {
   printf '%b' "$1"
@@ -69,4 +71,38 @@ runtime_init() {
 runtime_shutdown() {
   runtime_disable_input_mode
   runtime_leave_alternate_screen
+}
+
+runtime_cleanup() {
+  if [[ "${runtime_cleanup_ran}" -eq 1 ]]; then
+    return 0
+  fi
+
+  runtime_cleanup_ran=1
+  runtime_shutdown
+}
+
+runtime_handle_exit() {
+  runtime_cleanup
+}
+
+runtime_handle_interrupt() {
+  runtime_cleanup
+  exit 130
+}
+
+runtime_handle_terminate() {
+  runtime_cleanup
+  exit 143
+}
+
+runtime_handle_winch() {
+  runtime_resize_pending=1
+}
+
+runtime_install_signal_traps() {
+  trap runtime_handle_exit EXIT
+  trap runtime_handle_interrupt INT
+  trap runtime_handle_terminate TERM
+  trap runtime_handle_winch WINCH
 }
