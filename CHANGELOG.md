@@ -72,3 +72,5 @@ Exemplos:
 - Adiciona timeout configurável para toast com fallback seguro para valores ausentes/inválidos (E4/H4.2/T4.2.2). [PR #14] [commit ce01080]
 - Implementa render incremental de toast com marcação de dirty region e limpeza correta da área ao fechar (E4/H4.2/T4.2.3). [PR #14] [commit b950f76]
 - Evolui o toast para pilha visível limitada (novo no topo, antigos deslocados para baixo) com fila FIFO de overflow quando excede `max_visible` (E4/H4.2). [PR #14] [commit d68cd61]
+- Integra composição de overlays modal/toast com ordem explícita de z-index para garantir render previsível em sobreposição (E4/H4.3/T4.3.1). [PR #x] [commit 182fb07]
+- Corrige artefatos visuais de overlay ao fechar modal e em recomposição por resize com limpeza de retângulos em cache e teste de regressão (E4/H4.3/T4.3.2). [PR #x] [commit a255e58]
