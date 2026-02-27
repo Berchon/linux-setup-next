@@ -85,6 +85,68 @@ menu_should_coalesce_repeat() {
   printf '0\n'
 }
 
+menu_is_exit_signal() {
+  local signal_name="$1"
+
+  case "${signal_name}" in
+    EXIT|INT|TERM|HUP)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+menu_is_exit_item() {
+  local node_id="$1"
+  local node_action="$2"
+  local normalized_id=""
+  local normalized_action=""
+
+  normalized_id="${node_id,,}"
+  normalized_action="${node_action,,}"
+
+  case "${normalized_id}" in
+    exit|quit|sair)
+      return 0
+      ;;
+  esac
+
+  case "${normalized_action}" in
+    exit|quit|app_exit|app_quit)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+menu_should_exit_requested() {
+  local key_action="${1:-}"
+  local node_id="${2:-}"
+  local node_action="${3:-}"
+  local signal_name="${4:-}"
+
+  if [[ "${key_action}" == "quit" ]]; then
+    printf '1\n'
+    return 0
+  fi
+
+  if menu_is_exit_item "${node_id}" "${node_action}"; then
+    printf '1\n'
+    return 0
+  fi
+
+  if menu_is_exit_signal "${signal_name}"; then
+    printf '1\n'
+    return 0
+  fi
+
+  printf '0\n'
+}
+
 menu_render_line() {
   local buffer_name="$1"
   local x="$2"
