@@ -57,6 +57,7 @@ ui_state_boot_config() {
   ui_state_config_loaded=1
   ui_state_config_load_count=$((ui_state_config_load_count + 1))
   ui_state_config_source_path="${config_path}"
+  ui_state_apply_runtime_theme || return 1
   return 0
 }
 
@@ -65,6 +66,26 @@ ui_state_get_config() {
   local fallback="${2:-}"
 
   config_schema_get_value "${key}" "${fallback}"
+}
+
+ui_state_apply_runtime_theme() {
+  local toast_ttl_ms=""
+
+  if ! declare -F theme_config_toast_ttl_ms >/dev/null; then
+    return 0
+  fi
+
+  if ! declare -F toast_state_set_default_ttl_ms >/dev/null; then
+    return 0
+  fi
+
+  toast_ttl_ms="$(theme_config_toast_ttl_ms)"
+  if ! toast_state_set_default_ttl_ms "${toast_ttl_ms}"; then
+    ui_state_last_error="ui_state: failed to apply runtime toast ttl"
+    return 1
+  fi
+
+  return 0
 }
 
 ui_state_set_config() {
@@ -125,4 +146,6 @@ ui_state_apply_config_input() {
     current_value="$(config_schema_get_value "${config_key}")"
     toast_state_enqueue "success" "Saved ${config_key}=${current_value}"
   fi
+
+  ui_state_apply_runtime_theme || true
 }

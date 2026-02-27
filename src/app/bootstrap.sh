@@ -9,6 +9,7 @@ readonly -a DEFAULT_MODULE_ORDER=(
   "config/config_loader.sh"
   "config/config_schema.sh"
   "config/config_store.sh"
+  "config/theme_config.sh"
   "state/menu_state.sh"
   "state/config_menu_state.sh"
   "state/ui_state.sh"

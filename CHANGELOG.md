@@ -81,3 +81,7 @@ Exemplos:
 - Implementa alteração de opções de configuração por teclado (`left/right/enter`) para tipos `bool`, `enum` e `int` com limites de faixa (E5/H5.2/T5.2.2). [PR #17] [commit 2e12d59]
 - Persiste automaticamente em arquivo cada alteração aplicada no menu de configurações, com rollback em memória em caso de falha de escrita (E5/H5.2/T5.2.3). [PR #17] [commit 2c17824]
 - Emite toast de sucesso/falha após tentativa de persistência de configuração no fluxo de edição da UI (E5/H5.2/T5.2.4). [PR #17] [commit 430f7d6]
+- Adiciona resolvedores de tema para wallpaper (`enabled/fg/bg`) com cobertura unitária dedicada (E5/H5.3/T5.3.1). [PR #18] [commit 8cf9dda]
+- Adiciona resolvedores de tema para `menu/modal/toast` (`fg/bg`) com validação de defaults e valores customizados (E5/H5.3/T5.3.2). [PR #18] [commit ec32069]
+- Adiciona resolvedores de `border_style` e `shadow.enabled` por componente (`menu/modal/toast`) com testes unitários (E5/H5.3/T5.3.3). [PR #18] [commit fb18772]
+- Aplica `theme.toast.ttl_ms` no runtime via `ui_state` para sincronizar TTL padrão de toast com configuração carregada e após edição persistida (E5/H5.3/T5.3.4). [PR #18] [commit 4013098]
