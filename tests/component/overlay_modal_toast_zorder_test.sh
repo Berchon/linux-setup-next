@@ -48,10 +48,23 @@ toast_state_set_max_visible 1
 toast_state_enqueue "warn" "toast-msg" "1000"
 modal_state_open_confirm "Confirm" "Proceed?" "Yes" "No" "confirm"
 
-assert_eq "$(overlay_resolve_modal_toast_order 1 1)" $'toast\nmodal' "render order should keep modal above toast"
+assert_eq "$(overlay_resolve_modal_toast_order 1 1 "$(modal_state_get_overlay_seq)" "$(toast_state_get_overlay_seq)")" $'toast\nmodal' "when modal opens after toast, modal should stay on top"
 overlay_render_modal_toast_from_state back 30 10 20 8
 
 # Position that belongs to toast top border and modal confirm buttons row.
 assert_eq "$(cell_buffer_get_cell back 8 6)" ">|7|0|1" "modal should overwrite overlapping toast content at higher z-order"
+
+modal_state_close
+toast_state_reset
+toast_reset_render_cache
+modal_reset_render_cache
+cell_buffer_clear_rect back 0 0 30 10
+
+modal_state_open_confirm "Confirm" "Proceed?" "Yes" "No" "confirm"
+toast_state_set_max_visible 1
+toast_state_enqueue "warn" "toast-msg" "1000"
+assert_eq "$(overlay_resolve_modal_toast_order 1 1 "$(modal_state_get_overlay_seq)" "$(toast_state_get_overlay_seq)")" $'modal\ntoast' "when toast opens after modal, toast should stay on top"
+overlay_render_modal_toast_from_state back 30 10 20 8
+assert_eq "$(cell_buffer_get_cell back 8 6)" "+|3|0|0" "toast should overwrite overlapping modal content when opened last"
 
 printf "PASS: overlay modal/toast z-order tests\n"
