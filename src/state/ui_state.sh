@@ -99,6 +99,7 @@ ui_state_apply_config_input() {
   local persist_path="${3:-}"
   local config_key=""
   local previous_value=""
+  local current_value=""
 
   if ! declare -F config_menu_state_apply_input >/dev/null; then
     ui_state_last_error="ui_state: config menu integration is unavailable"
@@ -114,6 +115,14 @@ ui_state_apply_config_input() {
 
   if ! ui_state_persist_config "${persist_path}"; then
     config_schema_set_value "${config_key}" "${previous_value}" || true
+    if declare -F toast_state_enqueue >/dev/null; then
+      toast_state_enqueue "error" "Failed to save ${config_key}"
+    fi
     return 1
+  fi
+
+  if declare -F toast_state_enqueue >/dev/null; then
+    current_value="$(config_schema_get_value "${config_key}")"
+    toast_state_enqueue "success" "Saved ${config_key}=${current_value}"
   fi
 }
