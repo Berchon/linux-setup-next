@@ -39,6 +39,52 @@ menu_map_input_key() {
   esac
 }
 
+menu_is_navigation_action() {
+  case "$1" in
+    up|down|left|right|enter|back)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+menu_should_coalesce_repeat() {
+  local action="$1"
+  local last_action="$2"
+  local now_ms="$3"
+  local last_ms="$4"
+  local window_ms="${5:-40}"
+  local elapsed=0
+
+  if ! menu_is_non_negative_integer "${now_ms}" || ! menu_is_non_negative_integer "${last_ms}" || ! menu_is_non_negative_integer "${window_ms}"; then
+    return 1
+  fi
+
+  if ! menu_is_navigation_action "${action}"; then
+    printf '0\n'
+    return 0
+  fi
+
+  if [[ "${action}" != "${last_action}" ]]; then
+    printf '0\n'
+    return 0
+  fi
+
+  elapsed=$((now_ms - last_ms))
+  if ((elapsed < 0)); then
+    elapsed=0
+  fi
+
+  if ((elapsed <= window_ms)); then
+    printf '1\n'
+    return 0
+  fi
+
+  printf '0\n'
+}
+
 menu_render_line() {
   local buffer_name="$1"
   local x="$2"
