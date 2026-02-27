@@ -4,6 +4,7 @@ if [[ -z "${menu_state_module_loaded:-}" ]]; then
   menu_state_module_loaded=1
 
   declare -ag menu_state_node_ids=()
+  declare -ag menu_state_nav_stack=()
   declare -Ag menu_state_node_parent=()
   declare -Ag menu_state_node_label=()
   declare -Ag menu_state_node_desc=()
@@ -13,6 +14,7 @@ fi
 
 menu_state_reset() {
   menu_state_node_ids=()
+  menu_state_nav_stack=()
   menu_state_node_parent=()
   menu_state_node_label=()
   menu_state_node_desc=()
@@ -128,4 +130,60 @@ menu_state_get_children() {
 
   parent_key="$(menu_state_parent_key "${parent_id}")"
   printf '%s\n' "${menu_state_children[${parent_key}]:-}"
+}
+
+menu_state_navigation_reset() {
+  local root_id="$1"
+
+  menu_state_has_node "${root_id}" || return 1
+  menu_state_nav_stack=("${root_id}")
+}
+
+menu_state_navigation_depth() {
+  printf '%s\n' "${#menu_state_nav_stack[@]}"
+}
+
+menu_state_navigation_current() {
+  local depth=0
+
+  depth="${#menu_state_nav_stack[@]}"
+  if ((depth == 0)); then
+    return 1
+  fi
+
+  printf '%s\n' "${menu_state_nav_stack[$((depth - 1))]}"
+}
+
+menu_state_navigation_path() {
+  printf '%s\n' "${menu_state_nav_stack[*]}"
+}
+
+menu_state_navigation_enter() {
+  local node_id="$1"
+  local current_id=""
+
+  menu_state_has_node "${node_id}" || return 1
+  current_id="$(menu_state_navigation_current)" || return 1
+
+  if [[ "${menu_state_node_parent[${node_id}]}" != "${current_id}" ]]; then
+    return 1
+  fi
+
+  if [[ -z "${menu_state_children[${node_id}]:-}" ]]; then
+    return 1
+  fi
+
+  menu_state_nav_stack+=("${node_id}")
+}
+
+menu_state_navigation_back() {
+  local depth=0
+
+  depth="${#menu_state_nav_stack[@]}"
+  if ((depth <= 1)); then
+    return 1
+  fi
+
+  unset 'menu_state_nav_stack[depth-1]'
+  menu_state_nav_stack=("${menu_state_nav_stack[@]}")
 }
