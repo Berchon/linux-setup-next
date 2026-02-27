@@ -118,45 +118,28 @@ rectangle_border_style_is_valid() {
 
 rectangle_border_chars() {
   local border_style="$1"
-  local border_charset=''
 
-  border_charset="$(rectangle_resolve_border_charset)"
+  if [[ "${rectangle_border_charset}" != 'auto' && "${rectangle_border_charset}" != 'ascii' ]]; then
+    return 1
+  fi
 
   case "${border_style}" in
     single)
-      if [[ "${border_charset}" == 'unicode' ]]; then
-        rectangle_border_tl='┌'
-        rectangle_border_tr='┐'
-        rectangle_border_bl='└'
-        rectangle_border_br='┘'
-        rectangle_border_h='─'
-        rectangle_border_v='│'
-      else
-        rectangle_border_tl='+'
-        rectangle_border_tr='+'
-        rectangle_border_bl='+'
-        rectangle_border_br='+'
-        rectangle_border_h='-'
-        rectangle_border_v='|'
-      fi
+      rectangle_border_tl='+'
+      rectangle_border_tr='+'
+      rectangle_border_bl='+'
+      rectangle_border_br='+'
+      rectangle_border_h='-'
+      rectangle_border_v='|'
       return 0
       ;;
     double)
-      if [[ "${border_charset}" == 'unicode' ]]; then
-        rectangle_border_tl='╔'
-        rectangle_border_tr='╗'
-        rectangle_border_bl='╚'
-        rectangle_border_br='╝'
-        rectangle_border_h='═'
-        rectangle_border_v='║'
-      else
-        rectangle_border_tl='+'
-        rectangle_border_tr='+'
-        rectangle_border_bl='+'
-        rectangle_border_br='+'
-        rectangle_border_h='='
-        rectangle_border_v='|'
-      fi
+      rectangle_border_tl='+'
+      rectangle_border_tr='+'
+      rectangle_border_bl='+'
+      rectangle_border_br='+'
+      rectangle_border_h='='
+      rectangle_border_v='|'
       return 0
       ;;
     *)
@@ -169,7 +152,7 @@ rectangle_set_border_charset() {
   local charset="$1"
 
   case "${charset}" in
-    auto|unicode|ascii)
+    auto|ascii)
       rectangle_border_charset="${charset}"
       return 0
       ;;
@@ -177,34 +160,6 @@ rectangle_set_border_charset() {
       return 1
       ;;
   esac
-}
-
-rectangle_runtime_charset_is_utf8() {
-  local locale_value=''
-
-  locale_value="${LC_ALL:-${LC_CTYPE:-${LANG:-}}}"
-  locale_value="${locale_value,,}"
-
-  [[ "${locale_value}" == *"utf-8"* || "${locale_value}" == *"utf8"* ]]
-}
-
-rectangle_resolve_border_charset() {
-  if [[ "${rectangle_border_charset}" == 'ascii' ]]; then
-    printf 'ascii\n'
-    return 0
-  fi
-
-  if [[ "${rectangle_border_charset}" == 'unicode' ]]; then
-    printf 'unicode\n'
-    return 0
-  fi
-
-  if rectangle_runtime_charset_is_utf8; then
-    printf 'unicode\n'
-    return 0
-  fi
-
-  printf 'ascii\n'
 }
 
 rectangle_write_visible_cell() {

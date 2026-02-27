@@ -9,7 +9,7 @@ readonly TEST_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 source "${TEST_ROOT}/src/render/cell_buffer.sh"
 # shellcheck source=src/components/rectangle.sh
 source "${TEST_ROOT}/src/components/rectangle.sh"
-rectangle_set_border_charset unicode
+rectangle_set_border_charset auto
 
 assert_eq() {
   local actual="$1"
@@ -43,29 +43,29 @@ assert_eq "$(cell_buffer_get_cell back 6 3)" ".|3|4|0" "none border style should
 
 cell_buffer_init 8 5
 rectangle_render back 1 1 6 3 "." 2 5 1 single
-assert_eq "$(cell_buffer_get_cell back 1 1)" "┌|2|5|1" "single border should draw continuous top-left corner"
-assert_eq "$(cell_buffer_get_cell back 3 1)" "─|2|5|1" "single border should draw continuous horizontal edge"
-assert_eq "$(cell_buffer_get_cell back 1 2)" "│|2|5|1" "single border should draw continuous vertical edge"
-assert_eq "$(cell_buffer_get_cell back 6 3)" "┘|2|5|1" "single border should draw continuous bottom-right corner"
+assert_eq "$(cell_buffer_get_cell back 1 1)" "+|2|5|1" "single border should draw ASCII top-left corner"
+assert_eq "$(cell_buffer_get_cell back 3 1)" "-|2|5|1" "single border should draw ASCII horizontal edge"
+assert_eq "$(cell_buffer_get_cell back 1 2)" "||2|5|1" "single border should draw ASCII vertical edge"
+assert_eq "$(cell_buffer_get_cell back 6 3)" "+|2|5|1" "single border should draw ASCII bottom-right corner"
 assert_eq "$(cell_buffer_get_cell back 3 2)" ".|2|5|1" "single border should preserve interior fill"
 
 cell_buffer_init 8 5
 rectangle_render back 1 1 6 3 "." 2 5 1 double
-assert_eq "$(cell_buffer_get_cell back 3 1)" "═|2|5|1" "double border should use continuous horizontal edge"
-assert_eq "$(cell_buffer_get_cell back 1 2)" "║|2|5|1" "double border should use continuous vertical edge"
+assert_eq "$(cell_buffer_get_cell back 3 1)" "=|2|5|1" "double border should use ASCII horizontal edge"
+assert_eq "$(cell_buffer_get_cell back 1 2)" "||2|5|1" "double border should use ASCII vertical edge"
 
 cell_buffer_init 5 4
 rectangle_render back -1 0 4 3 "." 1 2 0 single
-assert_eq "$(cell_buffer_get_cell back 0 0)" "─|1|2|0" "border rendering should clip and still draw visible top edge"
+assert_eq "$(cell_buffer_get_cell back 0 0)" "-|1|2|0" "border rendering should clip and still draw visible top edge"
 assert_eq "$(cell_buffer_get_cell back 0 1)" ".|1|2|0" "clipped left edge should not write outside viewport"
-assert_eq "$(cell_buffer_get_cell back 2 2)" "┘|1|2|0" "clipped border should still draw visible corner"
+assert_eq "$(cell_buffer_get_cell back 2 2)" "+|1|2|0" "clipped border should still draw visible corner"
 
 cell_buffer_init 10 4
 rectangle_render back 1 1 8 3 "." 6 1 1 single "TITLE-LONG"
 assert_eq "$(cell_buffer_get_cell back 2 1)" "T|6|1|1" "title should start at inner top area when border is enabled"
 assert_eq "$(cell_buffer_get_cell back 5 1)" "L|6|1|1" "title should preserve content inside top inner area"
 assert_eq "$(cell_buffer_get_cell back 7 1)" "-|6|1|1" "title should be clipped to available inner width"
-assert_eq "$(cell_buffer_get_cell back 8 1)" "┐|6|1|1" "title clipping should preserve top-right corner"
+assert_eq "$(cell_buffer_get_cell back 8 1)" "+|6|1|1" "title clipping should preserve top-right corner"
 
 rectangle_set_border_charset ascii
 cell_buffer_init 8 5
