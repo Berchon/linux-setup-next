@@ -68,3 +68,6 @@ Exemplos:
 - Implementa modal de texto com estado dedicado e bloqueio de input de fundo durante atividade do modal (E4/H4.1/T4.1.1). [PR #13] [commit 8c65556]
 - Implementa modal de confirmação com foco explícito de botão (`confirm/cancel`), alternância de foco e resolução de ação (E4/H4.1/T4.1.2). [PR #13] [commit 17c5eb5]
 - Implementa regras de teclado restritas por contexto de modal (texto/confirmação), com consumo de input enquanto modal está ativo (E4/H4.1/T4.1.3). [PR #13] [commit ef976b8]
+- Implementa fila FIFO para notificações toast com ativação sequencial do próximo item após dismiss (E4/H4.2/T4.2.1). [PR #14] [commit 5de7c0f]
+- Adiciona timeout configurável para toast com fallback seguro para valores ausentes/inválidos (E4/H4.2/T4.2.2). [PR #14] [commit ce01080]
+- Implementa render incremental de toast com marcação de dirty region e limpeza correta da área ao fechar (E4/H4.2/T4.2.3). [PR #14] [commit b950f76]
