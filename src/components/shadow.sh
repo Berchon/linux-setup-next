@@ -76,64 +76,48 @@ shadow_clip_rect() {
   printf '%s|%s|%s|%s\n' "${start_x}" "${start_y}" "$((end_x - start_x))" "$((end_y - start_y))"
 }
 
-shadow_cell_is_occupied() {
+shadow_draw_clipped_rect() {
   local buffer_name="$1"
   local x="$2"
   local y="$3"
-  local idx=0
-  local default_char=' '
-  local default_fg=7
-  local default_bg=0
-  local default_bold=0
-  local char=""
-  local fg=0
-  local bg=0
-  local bold=0
+  local width="$4"
+  local height="$5"
+  local shadow_char="$6"
+  local fg="$7"
+  local bg="$8"
+  local bold="$9"
+  local clipped=""
+  local start_x=0
+  local start_y=0
+  local clipped_width=0
+  local clipped_height=0
+  local current_x=0
+  local current_y=0
 
-  if ! idx="$(cell_buffer_index "${x}" "${y}")"; then
+  if ! shadow_is_integer "${x}" || ! shadow_is_integer "${y}"; then
     return 1
   fi
 
-  if [[ -n "${cell_buffer_default_char:-}" ]]; then
-    default_char="${cell_buffer_default_char}"
-  fi
-  if [[ -n "${cell_buffer_default_fg:-}" ]]; then
-    default_fg="${cell_buffer_default_fg}"
-  fi
-  if [[ -n "${cell_buffer_default_bg:-}" ]]; then
-    default_bg="${cell_buffer_default_bg}"
-  fi
-  if [[ -n "${cell_buffer_default_bold:-}" ]]; then
-    default_bold="${cell_buffer_default_bold}"
+  if ! shadow_is_non_negative_integer "${width}" || ! shadow_is_non_negative_integer "${height}"; then
+    return 1
   fi
 
-  case "${buffer_name}" in
-    front)
-      char="${cell_front_chars[idx]}"
-      fg="${cell_front_fgs[idx]}"
-      bg="${cell_front_bgs[idx]}"
-      bold="${cell_front_bolds[idx]}"
-      ;;
-    back)
-      char="${cell_back_chars[idx]}"
-      fg="${cell_back_fgs[idx]}"
-      bg="${cell_back_bgs[idx]}"
-      bold="${cell_back_bolds[idx]}"
-      ;;
-    *)
-      return 1
-      ;;
-  esac
-
-  if [[ "${char}" != "${default_char}" ]]; then
+  if ((width == 0 || height == 0)); then
     return 0
   fi
 
-  if [[ "${fg}" != "${default_fg}" || "${bg}" != "${default_bg}" || "${bold}" != "${default_bold}" ]]; then
+  clipped="$(shadow_clip_rect "${x}" "${y}" "${width}" "${height}")" || return 1
+  IFS='|' read -r start_x start_y clipped_width clipped_height <<< "${clipped}"
+
+  if ((clipped_width == 0 || clipped_height == 0)); then
     return 0
   fi
 
-  return 1
+  for ((current_y = start_y; current_y < start_y + clipped_height; current_y++)); do
+    for ((current_x = start_x; current_x < start_x + clipped_width; current_x++)); do
+      cell_buffer_write_cell "${buffer_name}" "${current_x}" "${current_y}" "${shadow_char}" "${fg}" "${bg}" "${bold}"
+    done
+  done
 }
 
 shadow_render() {
@@ -150,15 +134,23 @@ shadow_render() {
   local bold="${11}"
   local enabled_raw="${12:-1}"
   local enabled=1
-  local clipped=""
-  local start_x=0
-  local start_y=0
-  local clipped_width=0
-  local clipped_height=0
-  local current_x=0
-  local current_y=0
+  local shadow_x=0
+  local shadow_y=0
+  local base_end_x=0
+  local base_end_y=0
+  local shadow_end_x=0
+  local shadow_end_y=0
+  local overlap_start_x=0
+  local overlap_start_y=0
+  local overlap_end_x=0
+  local overlap_end_y=0
+  local middle_height=0
+  local top_height=0
+  local bottom_height=0
+  local left_width=0
+  local right_width=0
 
-  if ! declare -F cell_buffer_write_cell >/dev/null || ! declare -F cell_buffer_index >/dev/null; then
+  if ! declare -F cell_buffer_write_cell >/dev/null; then
     return 1
   fi
 
@@ -184,20 +176,46 @@ shadow_render() {
   fi
   shadow_char="${shadow_char:0:1}"
 
-  clipped="$(shadow_clip_rect "$((x + dx))" "$((y + dy))" "${width}" "${height}")" || return 1
-  IFS='|' read -r start_x start_y clipped_width clipped_height <<< "${clipped}"
+  shadow_x=$((x + dx))
+  shadow_y=$((y + dy))
+  base_end_x=$((x + width))
+  base_end_y=$((y + height))
+  shadow_end_x=$((shadow_x + width))
+  shadow_end_y=$((shadow_y + height))
 
-  if ((clipped_width == 0 || clipped_height == 0)); then
+  overlap_start_x="${shadow_x}"
+  if ((x > overlap_start_x)); then
+    overlap_start_x="${x}"
+  fi
+
+  overlap_start_y="${shadow_y}"
+  if ((y > overlap_start_y)); then
+    overlap_start_y="${y}"
+  fi
+
+  overlap_end_x="${shadow_end_x}"
+  if ((base_end_x < overlap_end_x)); then
+    overlap_end_x="${base_end_x}"
+  fi
+
+  overlap_end_y="${shadow_end_y}"
+  if ((base_end_y < overlap_end_y)); then
+    overlap_end_y="${base_end_y}"
+  fi
+
+  if ((overlap_start_x >= overlap_end_x || overlap_start_y >= overlap_end_y)); then
+    shadow_draw_clipped_rect "${buffer_name}" "${shadow_x}" "${shadow_y}" "${width}" "${height}" "${shadow_char}" "${fg}" "${bg}" "${bold}"
     return 0
   fi
 
-  for ((current_y = start_y; current_y < start_y + clipped_height; current_y++)); do
-    for ((current_x = start_x; current_x < start_x + clipped_width; current_x++)); do
-      if shadow_cell_is_occupied "${buffer_name}" "${current_x}" "${current_y}"; then
-        continue
-      fi
+  top_height=$((overlap_start_y - shadow_y))
+  bottom_height=$((shadow_end_y - overlap_end_y))
+  middle_height=$((overlap_end_y - overlap_start_y))
+  left_width=$((overlap_start_x - shadow_x))
+  right_width=$((shadow_end_x - overlap_end_x))
 
-      cell_buffer_write_cell "${buffer_name}" "${current_x}" "${current_y}" "${shadow_char}" "${fg}" "${bg}" "${bold}"
-    done
-  done
+  shadow_draw_clipped_rect "${buffer_name}" "${shadow_x}" "${shadow_y}" "${width}" "${top_height}" "${shadow_char}" "${fg}" "${bg}" "${bold}"
+  shadow_draw_clipped_rect "${buffer_name}" "${shadow_x}" "${overlap_end_y}" "${width}" "${bottom_height}" "${shadow_char}" "${fg}" "${bg}" "${bold}"
+  shadow_draw_clipped_rect "${buffer_name}" "${shadow_x}" "${overlap_start_y}" "${left_width}" "${middle_height}" "${shadow_char}" "${fg}" "${bg}" "${bold}"
+  shadow_draw_clipped_rect "${buffer_name}" "${overlap_end_x}" "${overlap_start_y}" "${right_width}" "${middle_height}" "${shadow_char}" "${fg}" "${bg}" "${bold}"
 }
