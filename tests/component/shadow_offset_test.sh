@@ -37,4 +37,25 @@ shadow_render back 3 2 2 2 -2 -1 "*" 5 6 0
 assert_eq "$(cell_buffer_get_cell back 1 1)" "*|5|6|0" "shadow should support negative dx"
 assert_eq "$(cell_buffer_get_cell back 2 2)" "*|5|6|0" "shadow should support negative dy"
 
+cell_buffer_init 5 4
+shadow_render back 3 2 4 3 1 1 "#" 1 2 1
+assert_eq "$(cell_buffer_get_cell back 4 3)" "#|1|2|1" "shadow should clip overflow to viewport bounds"
+assert_eq "$(cell_buffer_get_cell back 3 3)" " |7|0|0" "clipping should avoid writes outside visible area"
+
+cell_buffer_init 5 4
+shadow_render back 1 1 3 2 -2 -2 "+" 3 6 0
+assert_eq "$(cell_buffer_get_cell back 0 0)" "+|3|6|0" "shadow clipping should keep visible portion with negative origin"
+assert_eq "$(cell_buffer_get_cell back 1 0)" "+|3|6|0" "negative-origin clipping should preserve width inside viewport"
+assert_eq "$(cell_buffer_get_cell back 0 1)" " |7|0|0" "negative-origin clipping should preserve non-visible rows"
+
+cell_buffer_init 8 5
+cell_buffer_write_cell back 3 2 "X" 2 1 0
+cell_buffer_write_cell back 4 2 "Y" 2 1 0
+cell_buffer_write_cell back 5 2 " " 6 4 1
+shadow_render back 2 1 3 2 1 1 "." 0 8 0
+assert_eq "$(cell_buffer_get_cell back 3 2)" "X|2|1|0" "shadow should not overwrite existing non-space cells"
+assert_eq "$(cell_buffer_get_cell back 4 2)" "Y|2|1|0" "shadow overlap rule should preserve existing content"
+assert_eq "$(cell_buffer_get_cell back 5 2)" " |6|4|1" "shadow overlap rule should preserve styled space cells"
+assert_eq "$(cell_buffer_get_cell back 5 3)" ".|0|8|0" "shadow should render on non-occupied cells"
+
 printf "PASS: shadow offset tests\n"
