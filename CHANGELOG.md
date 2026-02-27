@@ -85,3 +85,6 @@ Exemplos:
 - Adiciona resolvedores de tema para `menu/modal/toast` (`fg/bg`) com validação de defaults e valores customizados (E5/H5.3/T5.3.2). [PR #18] [commit ec32069]
 - Adiciona resolvedores de `border_style` e `shadow.enabled` por componente (`menu/modal/toast`) com testes unitários (E5/H5.3/T5.3.3). [PR #18] [commit fb18772]
 - Aplica `theme.toast.ttl_ms` no runtime via `ui_state` para sincronizar TTL padrão de toast com configuração carregada e após edição persistida (E5/H5.3/T5.3.4). [PR #18] [commit 4013098]
+- Centraliza chaves de texto de i18n em registro único com API de descoberta/validação para reduzir acoplamento de strings (E6/H6.1/T6.1.1). [PR #19] [commit cd9c22f]
+- Cria catálogos de idioma PT/EN e runtime de carregamento/tradução por chave para base do i18n da UI (E6/H6.1/T6.1.2). [PR #19] [commit 14ac2c9]
+- Define fallback determinístico para chave ausente (`idioma atual -> PT -> id da chave`) no runtime de i18n com cobertura unitária (E6/H6.1/T6.1.3). [PR #19] [commit b7fb242]
