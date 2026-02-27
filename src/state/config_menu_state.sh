@@ -134,3 +134,135 @@ config_menu_state_node_key() {
   config_menu_state_is_editable_node "${node_id}" || return 1
   printf '%s\n' "${config_menu_state_node_to_key[${node_id}]}"
 }
+
+config_menu_state_enum_cycle_value() {
+  local enum_values="$1"
+  local current="$2"
+  local direction="$3"
+  local index=0
+  local current_index=-1
+  local next_index=0
+  local -a allowed=()
+
+  IFS='|' read -r -a allowed <<< "${enum_values}"
+  if ((${#allowed[@]} == 0)); then
+    return 1
+  fi
+
+  for ((index = 0; index < ${#allowed[@]}; index++)); do
+    if [[ "${allowed[index]}" == "${current}" ]]; then
+      current_index="${index}"
+      break
+    fi
+  done
+
+  if ((current_index < 0)); then
+    current_index=0
+  fi
+
+  next_index=$((current_index + direction))
+  if ((next_index < 0)); then
+    next_index=$((${#allowed[@]} - 1))
+  fi
+
+  if ((next_index >= ${#allowed[@]})); then
+    next_index=0
+  fi
+
+  printf '%s\n' "${allowed[next_index]}"
+}
+
+config_menu_state_resolve_next_value() {
+  local key="$1"
+  local action="$2"
+  local current=""
+  local value_type=""
+  local enum_values=""
+  local min_value=""
+  local max_value=""
+  local next_value=""
+
+  current="$(config_schema_get_value "${key}")"
+  value_type="${CONFIG_SCHEMA_TYPES[${key}]}"
+
+  case "${value_type}" in
+    bool)
+      if [[ "${current}" == "true" ]]; then
+        printf 'false\n'
+      else
+        printf 'true\n'
+      fi
+      ;;
+    enum)
+      enum_values="${CONFIG_SCHEMA_ENUMS[${key}]}"
+      if [[ "${action}" == "left" ]]; then
+        config_menu_state_enum_cycle_value "${enum_values}" "${current}" "-1"
+      else
+        config_menu_state_enum_cycle_value "${enum_values}" "${current}" "1"
+      fi
+      ;;
+    int)
+      min_value="${CONFIG_SCHEMA_MIN[${key}]}"
+      max_value="${CONFIG_SCHEMA_MAX[${key}]}"
+      next_value="${current}"
+
+      if [[ "${action}" == "left" ]]; then
+        next_value=$((next_value - 1))
+      else
+        next_value=$((next_value + 1))
+      fi
+
+      if [[ -n "${min_value}" ]] && ((next_value < min_value)); then
+        next_value="${min_value}"
+      fi
+
+      if [[ -n "${max_value}" ]] && ((next_value > max_value)); then
+        next_value="${max_value}"
+      fi
+
+      printf '%s\n' "${next_value}"
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+config_menu_state_apply_action() {
+  local node_id="$1"
+  local action="$2"
+  local key=""
+  local current=""
+  local next_value=""
+
+  case "${action}" in
+    left|right|enter)
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+
+  key="$(config_menu_state_node_key "${node_id}")" || return 1
+  current="$(config_schema_get_value "${key}")"
+  next_value="$(config_menu_state_resolve_next_value "${key}" "${action}")" || return 1
+
+  if [[ "${next_value}" == "${current}" ]]; then
+    return 1
+  fi
+
+  config_schema_set_value "${key}" "${next_value}" || return 1
+  REPLY="${next_value}"
+}
+
+config_menu_state_apply_input() {
+  local node_id="$1"
+  local raw_input="$2"
+  local action="${raw_input}"
+
+  if declare -F menu_map_input_key >/dev/null; then
+    action="$(menu_map_input_key "${raw_input}")"
+  fi
+
+  config_menu_state_apply_action "${node_id}" "${action}"
+}

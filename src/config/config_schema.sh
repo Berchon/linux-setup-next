@@ -186,3 +186,21 @@ config_schema_get_value() {
   printf '%s' "${fallback}"
   return 0
 }
+
+config_schema_set_value() {
+  local key="$1"
+  local raw_value="$2"
+  local normalized_value=""
+
+  config_schema_init
+
+  if [[ ! -v "CONFIG_SCHEMA_DEFAULTS[${key}]" ]]; then
+    return 1
+  fi
+
+  if ! normalized_value="$(config_schema_validate_value "${key}" "${raw_value}")"; then
+    return 1
+  fi
+
+  CONFIG_VALUES["${key}"]="${normalized_value}"
+}
