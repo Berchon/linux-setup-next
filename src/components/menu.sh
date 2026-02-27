@@ -196,3 +196,80 @@ menu_mark_selection_delta_dirty() {
     dirty_regions_add "${x}" "$((y + new_row))" "${width}" 1
   fi
 }
+
+menu_compute_viewport_start() {
+  local selected_index="$1"
+  local viewport_start="$2"
+  local viewport_height="$3"
+  local item_count="$4"
+  local max_start=0
+  local next_start=0
+
+  if ! menu_is_integer "${selected_index}" || ! menu_is_integer "${viewport_start}"; then
+    return 1
+  fi
+
+  if ! menu_is_non_negative_integer "${viewport_height}" || ! menu_is_non_negative_integer "${item_count}"; then
+    return 1
+  fi
+
+  if ((item_count == 0 || viewport_height == 0)); then
+    printf '0\n'
+    return 0
+  fi
+
+  max_start=$((item_count - viewport_height))
+  if ((max_start < 0)); then
+    max_start=0
+  fi
+
+  next_start="${viewport_start}"
+  if ((next_start < 0)); then
+    next_start=0
+  fi
+  if ((next_start > max_start)); then
+    next_start="${max_start}"
+  fi
+
+  if ((selected_index < next_start)); then
+    next_start="${selected_index}"
+  elif ((selected_index >= next_start + viewport_height)); then
+    next_start=$((selected_index - viewport_height + 1))
+  fi
+
+  if ((next_start < 0)); then
+    next_start=0
+  fi
+  if ((next_start > max_start)); then
+    next_start="${max_start}"
+  fi
+
+  printf '%s\n' "${next_start}"
+}
+
+menu_mark_viewport_scroll_dirty() {
+  local x="$1"
+  local y="$2"
+  local width="$3"
+  local height="$4"
+  local old_start="$5"
+  local new_start="$6"
+
+  if ! declare -F dirty_regions_add >/dev/null; then
+    return 1
+  fi
+
+  if ! menu_is_integer "${x}" || ! menu_is_integer "${y}" || ! menu_is_integer "${old_start}" || ! menu_is_integer "${new_start}"; then
+    return 1
+  fi
+
+  if ! menu_is_non_negative_integer "${width}" || ! menu_is_non_negative_integer "${height}"; then
+    return 1
+  fi
+
+  if ((width == 0 || height == 0 || old_start == new_start)); then
+    return 0
+  fi
+
+  dirty_regions_add "${x}" "${y}" "${width}" "${height}"
+}
