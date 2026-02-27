@@ -58,7 +58,7 @@ Exemplos:
 - Expõe API de conteúdo interno no `Panel` via callback com passagem de `content rect` e validação de callback inexistente (E2/H2.3/T2.3.3). [PR #8] [commit bdca513]
 - Define modelo de nós de menu com estrutura `id/parent/label/desc/action`, validações de consistência e consultas de hierarquia (E3/H3.1/T3.1.1). [PR #9] [commit 55ec613]
 - Implementa pilha de navegação para submenu com operações de entrar/voltar e validação de escopo hierárquico (E3/H3.1/T3.1.2). [PR #9] [commit 7a9b30c]
+- Adiciona runner sequencial de testes com descoberta automática, execução por categoria e resumo de progresso/pass-fail no terminal. [PR #10] [commit 9af13e4]
 - Implementa render de linha de menu com estilo de seleção e clipping por largura em `src/components/menu.sh` (E3/H3.2/T3.2.1). [PR #11] [commit 233b4dd]
 - Implementa atualização de seleção por delta com invalidação apenas da linha anterior e da nova linha selecionada (E3/H3.2/T3.2.2). [PR #11] [commit 5b9ec0a]
 - Implementa viewport/scroll de menu com ajuste de janela e invalidação local do viewport somente quando há mudança de scroll (E3/H3.2/T3.2.3). [PR #11] [commit 7f5a07e]
-- Adiciona runner sequencial de testes com descoberta automática, execução por categoria e resumo de progresso/pass-fail no terminal. [PR #10] [commit 9af13e4]
