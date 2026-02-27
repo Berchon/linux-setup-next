@@ -118,6 +118,8 @@ Métricas:
 1. Scripts de teste em Bash para manter compatibilidade de stack.
 2. Harness simples com assertivas padronizadas (`assert_eq`, `assert_contains`, `assert_rc`).
 3. Execução em lote por categoria (`unit`, `component`, `integration`, `e2e`, `perf`).
+4. Runner oficial para execução manual sequencial: `scripts/run_tests_sequential.sh`.
+5. Todo novo teste automatizado deve ser adicionado em `tests/` com nome `*_test.sh`; o runner oficial faz descoberta automática, então não existe lista manual de registro por arquivo.
 
 ## 8. Evidências de teste
 Cada história deve anexar:
