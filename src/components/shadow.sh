@@ -8,6 +8,25 @@ shadow_is_non_negative_integer() {
   [[ "$1" =~ ^[0-9]+$ ]]
 }
 
+shadow_resolve_enabled() {
+  local value="${1:-1}"
+
+  value="${value,,}"
+  case "${value}" in
+    1|true|yes|on)
+      printf '1\n'
+      return 0
+      ;;
+    0|false|no|off)
+      printf '0\n'
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
 shadow_clip_rect() {
   local x="$1"
   local y="$2"
@@ -129,6 +148,8 @@ shadow_render() {
   local fg="$9"
   local bg="${10}"
   local bold="${11}"
+  local enabled_raw="${12:-1}"
+  local enabled=1
   local clipped=""
   local start_x=0
   local start_y=0
@@ -139,6 +160,11 @@ shadow_render() {
 
   if ! declare -F cell_buffer_write_cell >/dev/null || ! declare -F cell_buffer_index >/dev/null; then
     return 1
+  fi
+
+  enabled="$(shadow_resolve_enabled "${enabled_raw}")" || return 1
+  if ((enabled == 0)); then
+    return 0
   fi
 
   if ! shadow_is_integer "${x}" || ! shadow_is_integer "${y}" || ! shadow_is_integer "${dx}" || ! shadow_is_integer "${dy}"; then

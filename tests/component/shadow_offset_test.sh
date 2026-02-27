@@ -58,4 +58,16 @@ assert_eq "$(cell_buffer_get_cell back 4 2)" "Y|2|1|0" "shadow overlap rule shou
 assert_eq "$(cell_buffer_get_cell back 5 2)" " |6|4|1" "shadow overlap rule should preserve styled space cells"
 assert_eq "$(cell_buffer_get_cell back 5 3)" ".|0|8|0" "shadow should render on non-occupied cells"
 
+cell_buffer_init 6 3
+shadow_render back 1 1 2 1 1 0 "@" 3 2 1 0
+assert_eq "$(cell_buffer_get_cell back 2 1)" " |7|0|0" "shadow should skip render when disabled by numeric flag"
+
+cell_buffer_init 6 3
+shadow_render back 1 1 2 1 1 0 "@" 3 2 1 false
+assert_eq "$(cell_buffer_get_cell back 2 1)" " |7|0|0" "shadow should skip render when disabled by textual flag"
+
+cell_buffer_init 6 3
+shadow_render back 1 1 2 1 1 0 "@" 3 2 1 on
+assert_eq "$(cell_buffer_get_cell back 2 1)" "@|3|2|1" "shadow should render when explicitly enabled"
+
 printf "PASS: shadow offset tests\n"
