@@ -102,3 +102,151 @@ rectangle_render_fill() {
     done
   done
 }
+
+rectangle_border_style_is_valid() {
+  case "$1" in
+    none|single|double)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+rectangle_border_chars() {
+  local border_style="$1"
+
+  case "${border_style}" in
+    single)
+      rectangle_border_tl='+'
+      rectangle_border_tr='+'
+      rectangle_border_bl='+'
+      rectangle_border_br='+'
+      rectangle_border_h='-'
+      rectangle_border_v='|'
+      return 0
+      ;;
+    double)
+      rectangle_border_tl='+'
+      rectangle_border_tr='+'
+      rectangle_border_bl='+'
+      rectangle_border_br='+'
+      rectangle_border_h='='
+      rectangle_border_v='|'
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+rectangle_write_visible_cell() {
+  local buffer_name="$1"
+  local x="$2"
+  local y="$3"
+  local cell_char="$4"
+  local fg="$5"
+  local bg="$6"
+  local bold="$7"
+
+  if ((x < 0 || y < 0 || x >= cell_buffer_width || y >= cell_buffer_height)); then
+    return 0
+  fi
+
+  cell_buffer_write_cell "${buffer_name}" "${x}" "${y}" "${cell_char}" "${fg}" "${bg}" "${bold}"
+}
+
+rectangle_render_border() {
+  local buffer_name="$1"
+  local x="$2"
+  local y="$3"
+  local width="$4"
+  local height="$5"
+  local border_style="$6"
+  local fg="$7"
+  local bg="$8"
+  local bold="$9"
+  local tl=""
+  local tr=""
+  local bl=""
+  local br=""
+  local h=""
+  local v=""
+  local right=0
+  local bottom=0
+  local current_x=0
+  local current_y=0
+
+  if ! rectangle_is_integer "${x}" || ! rectangle_is_integer "${y}"; then
+    return 1
+  fi
+
+  if ! rectangle_is_non_negative_integer "${width}" || ! rectangle_is_non_negative_integer "${height}"; then
+    return 1
+  fi
+
+  if ! rectangle_border_style_is_valid "${border_style}"; then
+    return 1
+  fi
+
+  if [[ "${border_style}" == "none" ]] || ((width == 0 || height == 0)); then
+    return 0
+  fi
+
+  rectangle_border_chars "${border_style}" || return 1
+  tl="${rectangle_border_tl}"
+  tr="${rectangle_border_tr}"
+  bl="${rectangle_border_bl}"
+  br="${rectangle_border_br}"
+  h="${rectangle_border_h}"
+  v="${rectangle_border_v}"
+
+  right=$((x + width - 1))
+  bottom=$((y + height - 1))
+
+  rectangle_write_visible_cell "${buffer_name}" "${x}" "${y}" "${tl}" "${fg}" "${bg}" "${bold}"
+  if ((width > 1)); then
+    rectangle_write_visible_cell "${buffer_name}" "${right}" "${y}" "${tr}" "${fg}" "${bg}" "${bold}"
+  fi
+  if ((height > 1)); then
+    rectangle_write_visible_cell "${buffer_name}" "${x}" "${bottom}" "${bl}" "${fg}" "${bg}" "${bold}"
+    if ((width > 1)); then
+      rectangle_write_visible_cell "${buffer_name}" "${right}" "${bottom}" "${br}" "${fg}" "${bg}" "${bold}"
+    fi
+  fi
+
+  for ((current_x = x + 1; current_x < right; current_x++)); do
+    rectangle_write_visible_cell "${buffer_name}" "${current_x}" "${y}" "${h}" "${fg}" "${bg}" "${bold}"
+    if ((height > 1)); then
+      rectangle_write_visible_cell "${buffer_name}" "${current_x}" "${bottom}" "${h}" "${fg}" "${bg}" "${bold}"
+    fi
+  done
+
+  for ((current_y = y + 1; current_y < bottom; current_y++)); do
+    rectangle_write_visible_cell "${buffer_name}" "${x}" "${current_y}" "${v}" "${fg}" "${bg}" "${bold}"
+    if ((width > 1)); then
+      rectangle_write_visible_cell "${buffer_name}" "${right}" "${current_y}" "${v}" "${fg}" "${bg}" "${bold}"
+    fi
+  done
+}
+
+rectangle_render() {
+  local buffer_name="$1"
+  local x="$2"
+  local y="$3"
+  local width="$4"
+  local height="$5"
+  local fill_char="$6"
+  local fg="$7"
+  local bg="$8"
+  local bold="$9"
+  local border_style="${10:-none}"
+
+  if ! rectangle_render_fill "${buffer_name}" "${x}" "${y}" "${width}" "${height}" "${fill_char}" "${fg}" "${bg}" "${bold}"; then
+    return 1
+  fi
+
+  rectangle_render_border "${buffer_name}" "${x}" "${y}" "${width}" "${height}" "${border_style}" "${fg}" "${bg}" "${bold}"
+}

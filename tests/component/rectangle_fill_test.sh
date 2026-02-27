@@ -35,4 +35,28 @@ assert_eq "$(cell_buffer_get_cell back 1 0)" " |7|0|0" "clipped fill should not 
 rectangle_render_fill back 0 0 0 2 "!" 5 6 1
 assert_eq "$(cell_buffer_get_cell back 5 3)" " |7|0|0" "zero-width fill should be no-op"
 
-printf "PASS: rectangle fill tests\n"
+cell_buffer_init 8 5
+rectangle_render back 1 1 6 3 "." 3 4 0 none
+assert_eq "$(cell_buffer_get_cell back 1 1)" ".|3|4|0" "none border style should keep filled top-left cell"
+assert_eq "$(cell_buffer_get_cell back 6 3)" ".|3|4|0" "none border style should not draw border characters"
+
+cell_buffer_init 8 5
+rectangle_render back 1 1 6 3 "." 2 5 1 single
+assert_eq "$(cell_buffer_get_cell back 1 1)" "+|2|5|1" "single border should draw top-left corner"
+assert_eq "$(cell_buffer_get_cell back 3 1)" "-|2|5|1" "single border should draw horizontal edge"
+assert_eq "$(cell_buffer_get_cell back 1 2)" "||2|5|1" "single border should draw vertical edge"
+assert_eq "$(cell_buffer_get_cell back 6 3)" "+|2|5|1" "single border should draw bottom-right corner"
+assert_eq "$(cell_buffer_get_cell back 3 2)" ".|2|5|1" "single border should preserve interior fill"
+
+cell_buffer_init 8 5
+rectangle_render back 1 1 6 3 "." 2 5 1 double
+assert_eq "$(cell_buffer_get_cell back 3 1)" "=|2|5|1" "double border should use ASCII-safe fallback for horizontal edge"
+assert_eq "$(cell_buffer_get_cell back 1 2)" "||2|5|1" "double border should keep ASCII-safe vertical edge"
+
+cell_buffer_init 5 4
+rectangle_render back -1 0 4 3 "." 1 2 0 single
+assert_eq "$(cell_buffer_get_cell back 0 0)" "-|1|2|0" "border rendering should clip and still draw visible top edge"
+assert_eq "$(cell_buffer_get_cell back 0 1)" ".|1|2|0" "clipped left edge should not write outside viewport"
+assert_eq "$(cell_buffer_get_cell back 2 2)" "+|1|2|0" "clipped border should still draw visible corner"
+
+printf "PASS: rectangle fill/border tests\n"
