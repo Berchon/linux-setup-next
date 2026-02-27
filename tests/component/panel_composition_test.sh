@@ -25,6 +25,23 @@ assert_eq() {
   fi
 }
 
+panel_content_calls=0
+panel_last_content_rect=""
+
+panel_test_content_renderer() {
+  local buffer_name="$1"
+  local x="$2"
+  local y="$3"
+  local width="$4"
+  local height="$5"
+  local text="${6:-CONTENT}"
+  local clipped_text="${text:0:width}"
+
+  panel_content_calls=$((panel_content_calls + 1))
+  panel_last_content_rect="${x}|${y}|${width}|${height}|${text}"
+  cell_buffer_write_text "${buffer_name}" "${x}" "${y}" "${clipped_text}" 5 1 1
+}
+
 rectangle_set_border_charset ascii
 
 cell_buffer_init 12 8
@@ -50,6 +67,27 @@ fi
 
 if panel_render back 0 0 4 3 "." 1 2 0 none "" 0 1 1 "." 0 8 0 "bad" 0 0 0 >/dev/null 2>&1; then
   printf "FAIL: panel render should reject invalid padding values\n" >&2
+  exit 1
+fi
+
+cell_buffer_init 12 8
+panel_content_calls=0
+panel_last_content_rect=""
+panel_render_with_content back 1 1 8 5 "." 2 4 0 single "P" 0 1 1 "." 0 8 0 1 1 0 1 panel_test_content_renderer "HELLO"
+assert_eq "${panel_content_calls}" "1" "content renderer should be invoked once when content rect is visible"
+assert_eq "${panel_last_content_rect}" "3|3|4|2|HELLO" "content renderer should receive computed content rect and custom arg"
+assert_eq "$(cell_buffer_get_cell back 3 3)" "H|5|1|1" "content renderer should draw at content origin"
+assert_eq "$(cell_buffer_get_cell back 6 3)" "L|5|1|1" "content renderer should clip content to content width"
+assert_eq "$(cell_buffer_get_cell back 7 3)" ".|2|4|0" "content renderer should not overflow beyond content width"
+
+cell_buffer_init 8 5
+panel_content_calls=0
+panel_last_content_rect=""
+panel_render_with_content back 1 1 4 3 "." 2 4 0 single "P" 0 1 1 "." 0 8 0 1 1 1 1 panel_test_content_renderer "HIDDEN"
+assert_eq "${panel_content_calls}" "0" "content renderer should not be called when content rect is empty"
+
+if panel_render_with_content back 0 0 4 3 "." 1 2 0 none "" 0 1 1 "." 0 8 0 0 0 0 0 missing_renderer >/dev/null 2>&1; then
+  printf "FAIL: panel render with content should fail when callback is missing\n" >&2
   exit 1
 fi
 

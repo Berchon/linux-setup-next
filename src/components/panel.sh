@@ -127,3 +127,60 @@ panel_render() {
 
   rectangle_render "${buffer_name}" "${x}" "${y}" "${width}" "${height}" "${fill_char}" "${fg}" "${bg}" "${bold}" "${border_style}" "${title}"
 }
+
+panel_render_with_content() {
+  local buffer_name="$1"
+  local x="$2"
+  local y="$3"
+  local width="$4"
+  local height="$5"
+  local fill_char="$6"
+  local fg="$7"
+  local bg="$8"
+  local bold="$9"
+  local border_style="${10:-none}"
+  local title="${11:-}"
+  local shadow_enabled="${12:-0}"
+  local shadow_dx="${13:-1}"
+  local shadow_dy="${14:-1}"
+  local shadow_char="${15:-.}"
+  local shadow_fg="${16:-0}"
+  local shadow_bg="${17:-8}"
+  local shadow_bold="${18:-0}"
+  local padding_top="${19:-0}"
+  local padding_right="${20:-0}"
+  local padding_bottom="${21:-0}"
+  local padding_left="${22:-0}"
+  local content_renderer="${23:-}"
+  local content_rect=""
+  local content_x=0
+  local content_y=0
+  local content_width=0
+  local content_height=0
+  local -a content_args=()
+
+  if (($# > 23)); then
+    content_args=("${@:24}")
+  fi
+
+  if ! panel_render "${buffer_name}" "${x}" "${y}" "${width}" "${height}" "${fill_char}" "${fg}" "${bg}" "${bold}" "${border_style}" "${title}" "${shadow_enabled}" "${shadow_dx}" "${shadow_dy}" "${shadow_char}" "${shadow_fg}" "${shadow_bg}" "${shadow_bold}" "${padding_top}" "${padding_right}" "${padding_bottom}" "${padding_left}"; then
+    return 1
+  fi
+
+  if [[ -z "${content_renderer}" ]]; then
+    return 0
+  fi
+
+  if ! declare -F "${content_renderer}" >/dev/null; then
+    return 1
+  fi
+
+  content_rect="$(panel_content_rect "${x}" "${y}" "${width}" "${height}" "${border_style}" "${padding_top}" "${padding_right}" "${padding_bottom}" "${padding_left}")" || return 1
+  IFS='|' read -r content_x content_y content_width content_height <<< "${content_rect}"
+
+  if ((content_width == 0 || content_height == 0)); then
+    return 0
+  fi
+
+  "${content_renderer}" "${buffer_name}" "${content_x}" "${content_y}" "${content_width}" "${content_height}" "${content_args[@]}"
+}
