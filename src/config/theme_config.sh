@@ -80,3 +80,7 @@ theme_config_toast_border_style() {
 theme_config_toast_shadow_enabled() {
   theme_config_get_bool "theme.toast.shadow.enabled" "true"
 }
+
+theme_config_toast_ttl_ms() {
+  theme_config_get_int "theme.toast.ttl_ms" "2500"
+}
