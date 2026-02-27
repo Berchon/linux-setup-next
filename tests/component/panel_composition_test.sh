@@ -39,4 +39,18 @@ panel_render back 2 2 4 3 "." 2 4 1 single "P" 0 1 1 "~" 6 0 0
 assert_eq "$(cell_buffer_get_cell back 6 3)" " |7|0|0" "panel should skip shadow when disabled"
 assert_eq "$(cell_buffer_get_cell back 3 5)" " |7|0|0" "panel should not draw bottom shadow when disabled"
 
+assert_eq "$(panel_content_rect 2 2 10 6 single 1 2 1 0)" "3|4|6|2" "content rect should respect border and per-side padding"
+assert_eq "$(panel_content_rect 0 0 8 4 none 1 1 0 2)" "2|1|5|3" "content rect should respect padding without border"
+assert_eq "$(panel_content_rect 1 1 4 3 single 1 1 1 1)" "3|3|0|0" "content rect should collapse when padding consumes available area"
+
+if panel_content_rect 0 0 4 3 none -1 0 0 0 >/dev/null 2>&1; then
+  printf "FAIL: content rect should reject negative padding\n" >&2
+  exit 1
+fi
+
+if panel_render back 0 0 4 3 "." 1 2 0 none "" 0 1 1 "." 0 8 0 "bad" 0 0 0 >/dev/null 2>&1; then
+  printf "FAIL: panel render should reject invalid padding values\n" >&2
+  exit 1
+fi
+
 printf "PASS: panel composition tests\n"
