@@ -71,3 +71,4 @@ Exemplos:
 - Implementa fila FIFO para notificações toast com ativação sequencial do próximo item após dismiss (E4/H4.2/T4.2.1). [PR #14] [commit 5de7c0f]
 - Adiciona timeout configurável para toast com fallback seguro para valores ausentes/inválidos (E4/H4.2/T4.2.2). [PR #14] [commit ce01080]
 - Implementa render incremental de toast com marcação de dirty region e limpeza correta da área ao fechar (E4/H4.2/T4.2.3). [PR #14] [commit b950f76]
+- Evolui o toast para pilha visível limitada (novo no topo, antigos deslocados para baixo) com fila FIFO de overflow quando excede `max_visible` (E4/H4.2). [PR #14] [commit d68cd61]
