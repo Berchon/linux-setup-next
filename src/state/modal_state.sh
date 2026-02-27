@@ -7,6 +7,10 @@ if [[ -z "${modal_state_module_loaded:-}" ]]; then
   modal_state_type=""
   modal_state_title=""
   modal_state_message=""
+  modal_state_confirm_label=""
+  modal_state_cancel_label=""
+  modal_state_focus_button=""
+  modal_state_result=""
 fi
 
 modal_state_reset() {
@@ -14,6 +18,10 @@ modal_state_reset() {
   modal_state_type=""
   modal_state_title=""
   modal_state_message=""
+  modal_state_confirm_label=""
+  modal_state_cancel_label=""
+  modal_state_focus_button=""
+  modal_state_result=""
 }
 
 modal_state_is_active() {
@@ -32,6 +40,73 @@ modal_state_open_text() {
   modal_state_type="text"
   modal_state_title="${title}"
   modal_state_message="${message}"
+}
+
+modal_state_normalize_focus_button() {
+  local focus="${1:-confirm}"
+
+  case "${focus}" in
+    confirm|cancel)
+      printf '%s\n' "${focus}"
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+modal_state_open_confirm() {
+  local title="$1"
+  local message="$2"
+  local confirm_label="${3:-Confirm}"
+  local cancel_label="${4:-Cancel}"
+  local focus_button="${5:-confirm}"
+
+  focus_button="$(modal_state_normalize_focus_button "${focus_button}")" || return 1
+
+  modal_state_active=1
+  modal_state_type="confirm"
+  modal_state_title="${title}"
+  modal_state_message="${message}"
+  modal_state_confirm_label="${confirm_label}"
+  modal_state_cancel_label="${cancel_label}"
+  modal_state_focus_button="${focus_button}"
+  modal_state_result=""
+}
+
+modal_state_set_confirm_focus() {
+  local focus_button="$1"
+
+  if [[ "${modal_state_type}" != "confirm" ]]; then
+    return 1
+  fi
+
+  focus_button="$(modal_state_normalize_focus_button "${focus_button}")" || return 1
+  modal_state_focus_button="${focus_button}"
+}
+
+modal_state_toggle_confirm_focus() {
+  if [[ "${modal_state_type}" != "confirm" ]]; then
+    return 1
+  fi
+
+  if [[ "${modal_state_focus_button}" == "confirm" ]]; then
+    modal_state_focus_button="cancel"
+  else
+    modal_state_focus_button="confirm"
+  fi
+}
+
+modal_state_resolve_confirm() {
+  local action="$1"
+
+  if [[ "${modal_state_type}" != "confirm" ]]; then
+    return 1
+  fi
+
+  action="$(modal_state_normalize_focus_button "${action}")" || return 1
+  modal_state_result="${action}"
+  modal_state_close
 }
 
 modal_state_close() {
