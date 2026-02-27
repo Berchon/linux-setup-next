@@ -6,6 +6,9 @@ set -o pipefail
 
 readonly BOOTSTRAP_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 readonly -a DEFAULT_MODULE_ORDER=(
+  "config/config_loader.sh"
+  "config/config_schema.sh"
+  "state/ui_state.sh"
   "core/runtime.sh"
 )
 
