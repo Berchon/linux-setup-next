@@ -46,3 +46,6 @@ Exemplos:
 - Agrupa células alteradas em runs contíguos por estilo (`fg/bg/bold`) para reduzir fragmentação de render (E1/H1.4/T1.4.2). [PR #5] [commit fc760d7]
 - Emite ANSI mínimo por run (cursor + estilo somente quando necessário), aplica flush e realiza `swap` de buffers com limpeza de dirty regions (E1/H1.4/T1.4.3). [PR #5] [commit fda9a2f]
 - Aplica política de cor baseada em capacidade (`16` cores base com upgrade para `256`) no diff renderer (E1/H1.4/T1.4.4). [PR #5] [commit 388ca0d]
+- Implementa primitive `Rectangle` com preenchimento de área e clipping no viewport em `src/components/rectangle.sh`, com teste de componente dedicado (E2/H2.1/T2.1.1). [PR #x] [commit bb9de42]
+- Implementa borda configurável `none|single|double` no `Rectangle`, com fallback ASCII-safe e cobertura de testes para estilos e clipping (E2/H2.1/T2.1.2). [PR #x] [commit 8024729]
+- Implementa título opcional no `Rectangle` com clipping para área disponível (com e sem borda), validado por testes de componente (E2/H2.1/T2.1.3). [PR #x] [commit 537c03c]
