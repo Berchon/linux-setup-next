@@ -66,3 +66,63 @@ ui_state_get_config() {
 
   config_schema_get_value "${key}" "${fallback}"
 }
+
+ui_state_set_config() {
+  local key="$1"
+  local value="$2"
+
+  config_schema_set_value "${key}" "${value}"
+}
+
+ui_state_persist_config() {
+  local target_path="${1:-}"
+
+  if [[ -z "${target_path}" ]]; then
+    target_path="${ui_state_config_source_path}"
+  fi
+
+  if [[ -z "${target_path}" ]]; then
+    target_path="$(ui_state_resolve_config_path "")"
+  fi
+
+  if ! config_store_write_file "${target_path}"; then
+    ui_state_last_error="${config_store_last_error}"
+    return 1
+  fi
+
+  ui_state_config_source_path="${target_path}"
+}
+
+ui_state_apply_config_input() {
+  local node_id="$1"
+  local raw_input="$2"
+  local persist_path="${3:-}"
+  local config_key=""
+  local previous_value=""
+  local current_value=""
+
+  if ! declare -F config_menu_state_apply_input >/dev/null; then
+    ui_state_last_error="ui_state: config menu integration is unavailable"
+    return 1
+  fi
+
+  config_key="$(config_menu_state_node_key "${node_id}")" || return 1
+  previous_value="$(config_schema_get_value "${config_key}")"
+
+  if ! config_menu_state_apply_input "${node_id}" "${raw_input}"; then
+    return 1
+  fi
+
+  if ! ui_state_persist_config "${persist_path}"; then
+    config_schema_set_value "${config_key}" "${previous_value}" || true
+    if declare -F toast_state_enqueue >/dev/null; then
+      toast_state_enqueue "error" "Failed to save ${config_key}"
+    fi
+    return 1
+  fi
+
+  if declare -F toast_state_enqueue >/dev/null; then
+    current_value="$(config_schema_get_value "${config_key}")"
+    toast_state_enqueue "success" "Saved ${config_key}=${current_value}"
+  fi
+}

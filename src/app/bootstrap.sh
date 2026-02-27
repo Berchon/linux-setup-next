@@ -8,6 +8,9 @@ readonly BOOTSTRAP_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 readonly -a DEFAULT_MODULE_ORDER=(
   "config/config_loader.sh"
   "config/config_schema.sh"
+  "config/config_store.sh"
+  "state/menu_state.sh"
+  "state/config_menu_state.sh"
   "state/ui_state.sh"
   "core/runtime.sh"
 )

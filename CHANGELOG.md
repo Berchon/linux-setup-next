@@ -77,3 +77,7 @@ Exemplos:
 - Implementa parser robusto de configuração `key=value` com suporte a comentários e linhas vazias (E5/H5.1/T5.1.1). [PR #16] [commit e278bdc]
 - Implementa validação de schema com aplicação de defaults para chaves obrigatórias de UI (E5/H5.1/T5.1.2). [PR #16] [commit d33bf58]
 - Carrega configuração no boot uma única vez e mantém estado normalizado em memória durante o runtime (E5/H5.1/T5.1.3). [PR #16] [commit a0457a9]
+- Adiciona árvore de configurações baseada no schema da UI com nós hierárquicos navegáveis e mapeamento de chaves editáveis (E5/H5.2/T5.2.1). [PR #17] [commit 195a5b3]
+- Implementa alteração de opções de configuração por teclado (`left/right/enter`) para tipos `bool`, `enum` e `int` com limites de faixa (E5/H5.2/T5.2.2). [PR #17] [commit 2e12d59]
+- Persiste automaticamente em arquivo cada alteração aplicada no menu de configurações, com rollback em memória em caso de falha de escrita (E5/H5.2/T5.2.3). [PR #17] [commit 2c17824]
+- Emite toast de sucesso/falha após tentativa de persistência de configuração no fluxo de edição da UI (E5/H5.2/T5.2.4). [PR #17] [commit 430f7d6]
