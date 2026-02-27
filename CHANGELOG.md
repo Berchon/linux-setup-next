@@ -62,3 +62,6 @@ Exemplos:
 - Implementa render de linha de menu com estilo de seleção e clipping por largura em `src/components/menu.sh` (E3/H3.2/T3.2.1). [PR #11] [commit 233b4dd]
 - Implementa atualização de seleção por delta com invalidação apenas da linha anterior e da nova linha selecionada (E3/H3.2/T3.2.2). [PR #11] [commit 5b9ec0a]
 - Implementa viewport/scroll de menu com ajuste de janela e invalidação local do viewport somente quando há mudança de scroll (E3/H3.2/T3.2.3). [PR #11] [commit 7f5a07e]
+- Implementa mapeamento de teclas de navegação para ações canônicas (`up/down/left/right/enter/back/quit`) no menu (E3/H3.3/T3.3.1). [PR #12] [commit 4fe569b]
+- Implementa debounce/coalescência de repetição para ações de navegação com janela configurável de tempo (E3/H3.3/T3.3.2). [PR #12] [commit d237b56]
+- Implementa resolução de fluxo de saída via tecla `Q`, item de sair e sinais de término (`INT/TERM/HUP/EXIT`) (E3/H3.3/T3.3.3). [PR #12] [commit 734ee40]

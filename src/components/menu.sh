@@ -8,6 +8,145 @@ menu_is_non_negative_integer() {
   [[ "$1" =~ ^[0-9]+$ ]]
 }
 
+menu_map_input_key() {
+  local key="$1"
+
+  case "${key}" in
+    $'\033[A'|k|K)
+      printf 'up\n'
+      ;;
+    $'\033[B'|j|J)
+      printf 'down\n'
+      ;;
+    $'\033[D'|h|H)
+      printf 'left\n'
+      ;;
+    $'\033[C'|l|L)
+      printf 'right\n'
+      ;;
+    ""|$'\n'|$'\r')
+      printf 'enter\n'
+      ;;
+    $'\033')
+      printf 'back\n'
+      ;;
+    q|Q)
+      printf 'quit\n'
+      ;;
+    *)
+      printf 'noop\n'
+      ;;
+  esac
+}
+
+menu_is_navigation_action() {
+  case "$1" in
+    up|down|left|right|enter|back)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+menu_should_coalesce_repeat() {
+  local action="$1"
+  local last_action="$2"
+  local now_ms="$3"
+  local last_ms="$4"
+  local window_ms="${5:-40}"
+  local elapsed=0
+
+  if ! menu_is_non_negative_integer "${now_ms}" || ! menu_is_non_negative_integer "${last_ms}" || ! menu_is_non_negative_integer "${window_ms}"; then
+    return 1
+  fi
+
+  if ! menu_is_navigation_action "${action}"; then
+    printf '0\n'
+    return 0
+  fi
+
+  if [[ "${action}" != "${last_action}" ]]; then
+    printf '0\n'
+    return 0
+  fi
+
+  elapsed=$((now_ms - last_ms))
+  if ((elapsed < 0)); then
+    elapsed=0
+  fi
+
+  if ((elapsed <= window_ms)); then
+    printf '1\n'
+    return 0
+  fi
+
+  printf '0\n'
+}
+
+menu_is_exit_signal() {
+  local signal_name="$1"
+
+  case "${signal_name}" in
+    EXIT|INT|TERM|HUP)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+menu_is_exit_item() {
+  local node_id="$1"
+  local node_action="$2"
+  local normalized_id=""
+  local normalized_action=""
+
+  normalized_id="${node_id,,}"
+  normalized_action="${node_action,,}"
+
+  case "${normalized_id}" in
+    exit|quit|sair)
+      return 0
+      ;;
+  esac
+
+  case "${normalized_action}" in
+    exit|quit|app_exit|app_quit)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+menu_should_exit_requested() {
+  local key_action="${1:-}"
+  local node_id="${2:-}"
+  local node_action="${3:-}"
+  local signal_name="${4:-}"
+
+  if [[ "${key_action}" == "quit" ]]; then
+    printf '1\n'
+    return 0
+  fi
+
+  if menu_is_exit_item "${node_id}" "${node_action}"; then
+    printf '1\n'
+    return 0
+  fi
+
+  if menu_is_exit_signal "${signal_name}"; then
+    printf '1\n'
+    return 0
+  fi
+
+  printf '0\n'
+}
+
 menu_render_line() {
   local buffer_name="$1"
   local x="$2"
