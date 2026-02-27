@@ -57,7 +57,20 @@ ui_state_boot_config() {
   ui_state_config_loaded=1
   ui_state_config_load_count=$((ui_state_config_load_count + 1))
   ui_state_config_source_path="${config_path}"
+  ui_state_apply_runtime_language || return 1
   ui_state_apply_runtime_theme || return 1
+  return 0
+}
+
+ui_state_apply_runtime_language() {
+  local language=""
+
+  if ! declare -F i18n_load_catalog >/dev/null; then
+    return 0
+  fi
+
+  language="$(config_schema_get_value "app.language" "pt")"
+  i18n_load_catalog "${language}"
   return 0
 }
 
