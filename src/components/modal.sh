@@ -1,11 +1,68 @@
 #!/usr/bin/env bash
 
+if [[ -z "${modal_component_module_loaded:-}" ]]; then
+  modal_component_module_loaded=1
+
+  modal_render_cache_visible=0
+  modal_render_cache_x=0
+  modal_render_cache_y=0
+  modal_render_cache_width=0
+  modal_render_cache_height=0
+fi
+
 modal_is_integer() {
   [[ "$1" =~ ^-?[0-9]+$ ]]
 }
 
 modal_is_positive_integer() {
   [[ "$1" =~ ^[1-9][0-9]*$ ]]
+}
+
+modal_reset_render_cache() {
+  modal_render_cache_visible=0
+  modal_render_cache_x=0
+  modal_render_cache_y=0
+  modal_render_cache_width=0
+  modal_render_cache_height=0
+}
+
+modal_track_dirty_region() {
+  local x="$1"
+  local y="$2"
+  local width="$3"
+  local height="$4"
+
+  if [[ ! "${width}" =~ ^[0-9]+$ ]] || [[ ! "${height}" =~ ^[0-9]+$ ]]; then
+    return 1
+  fi
+
+  if ((width == 0 || height == 0)); then
+    return 0
+  fi
+
+  if declare -F dirty_regions_add >/dev/null; then
+    dirty_regions_add "${x}" "${y}" "${width}" "${height}"
+  fi
+}
+
+modal_clear_cached_rect() {
+  local buffer_name="$1"
+
+  if ((modal_render_cache_visible == 0)); then
+    return 0
+  fi
+
+  if ! declare -F cell_buffer_clear_rect >/dev/null; then
+    return 1
+  fi
+
+  modal_track_dirty_region "${modal_render_cache_x}" "${modal_render_cache_y}" "${modal_render_cache_width}" "${modal_render_cache_height}" || return 1
+  cell_buffer_clear_rect \
+    "${buffer_name}" \
+    "${modal_render_cache_x}" \
+    "${modal_render_cache_y}" \
+    "${modal_render_cache_width}" \
+    "${modal_render_cache_height}"
 }
 
 modal_center_rect() {
@@ -191,6 +248,71 @@ modal_render_confirm() {
     "${confirm_label}" \
     "${cancel_label}" \
     "${focus_button}"
+}
+
+modal_render_from_state() {
+  local buffer_name="$1"
+  local screen_width="$2"
+  local screen_height="$3"
+  local width="$4"
+  local height="$5"
+  local is_active="$6"
+  local modal_type="$7"
+  local title="$8"
+  local message="$9"
+  local confirm_label="${10:-Confirm}"
+  local cancel_label="${11:-Cancel}"
+  local focus_button="${12:-confirm}"
+  local rect=""
+  local x=0
+  local y=0
+  local target_width=0
+  local target_height=0
+
+  if [[ "${is_active}" != "1" ]]; then
+    modal_clear_cached_rect "${buffer_name}" || return 1
+    modal_reset_render_cache
+    return 0
+  fi
+
+  rect="$(modal_center_rect "${screen_width}" "${screen_height}" "${width}" "${height}")" || return 1
+  IFS='|' read -r x y target_width target_height <<< "${rect}"
+
+  if ((modal_render_cache_visible == 1)); then
+    if ((modal_render_cache_x != x || modal_render_cache_y != y || modal_render_cache_width != target_width || modal_render_cache_height != target_height)); then
+      modal_clear_cached_rect "${buffer_name}" || return 1
+    fi
+  fi
+
+  modal_track_dirty_region "${x}" "${y}" "${target_width}" "${target_height}" || return 1
+
+  case "${modal_type}" in
+    text)
+      modal_render_text "${buffer_name}" "${screen_width}" "${screen_height}" "${width}" "${height}" "${title}" "${message}" || return 1
+      ;;
+    confirm)
+      modal_render_confirm \
+        "${buffer_name}" \
+        "${screen_width}" \
+        "${screen_height}" \
+        "${width}" \
+        "${height}" \
+        "${title}" \
+        "${message}" \
+        "${confirm_label}" \
+        "${cancel_label}" \
+        "${focus_button}" || return 1
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+
+  modal_render_cache_visible=1
+  modal_render_cache_x="${x}"
+  modal_render_cache_y="${y}"
+  modal_render_cache_width="${target_width}"
+  modal_render_cache_height="${target_height}"
 }
 
 modal_should_block_background_input() {

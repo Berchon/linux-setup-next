@@ -4,6 +4,7 @@ if [[ -z "${modal_state_module_loaded:-}" ]]; then
   modal_state_module_loaded=1
 
   modal_state_active=0
+  modal_state_overlay_seq=0
   modal_state_type=""
   modal_state_title=""
   modal_state_message=""
@@ -13,8 +14,18 @@ if [[ -z "${modal_state_module_loaded:-}" ]]; then
   modal_state_result=""
 fi
 
+overlay_state_next_seq() {
+  if [[ -z "${overlay_state_seq_counter:-}" ]]; then
+    overlay_state_seq_counter=0
+  fi
+
+  overlay_state_seq_counter=$((overlay_state_seq_counter + 1))
+  REPLY="${overlay_state_seq_counter}"
+}
+
 modal_state_reset() {
   modal_state_active=0
+  modal_state_overlay_seq=0
   modal_state_type=""
   modal_state_title=""
   modal_state_message=""
@@ -28,6 +39,10 @@ modal_state_is_active() {
   printf '%s\n' "${modal_state_active}"
 }
 
+modal_state_get_overlay_seq() {
+  printf '%s\n' "${modal_state_overlay_seq}"
+}
+
 modal_state_blocks_background_input() {
   printf '%s\n' "${modal_state_active}"
 }
@@ -37,6 +52,8 @@ modal_state_open_text() {
   local message="$2"
 
   modal_state_active=1
+  overlay_state_next_seq
+  modal_state_overlay_seq="${REPLY}"
   modal_state_type="text"
   modal_state_title="${title}"
   modal_state_message="${message}"
@@ -65,6 +82,8 @@ modal_state_open_confirm() {
   focus_button="$(modal_state_normalize_focus_button "${focus_button}")" || return 1
 
   modal_state_active=1
+  overlay_state_next_seq
+  modal_state_overlay_seq="${REPLY}"
   modal_state_type="confirm"
   modal_state_title="${title}"
   modal_state_message="${message}"

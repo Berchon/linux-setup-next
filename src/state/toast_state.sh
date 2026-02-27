@@ -5,6 +5,7 @@ if [[ -z "${toast_state_module_loaded:-}" ]]; then
 
   toast_state_default_ttl_ms=3000
   toast_state_max_visible=3
+  toast_state_overlay_seq=0
 
   declare -ag toast_state_visible_severity=()
   declare -ag toast_state_visible_message=()
@@ -15,9 +16,19 @@ if [[ -z "${toast_state_module_loaded:-}" ]]; then
   declare -ag toast_state_queue_ttl_ms=()
 fi
 
+overlay_state_next_seq() {
+  if [[ -z "${overlay_state_seq_counter:-}" ]]; then
+    overlay_state_seq_counter=0
+  fi
+
+  overlay_state_seq_counter=$((overlay_state_seq_counter + 1))
+  REPLY="${overlay_state_seq_counter}"
+}
+
 toast_state_reset() {
   toast_state_default_ttl_ms=3000
   toast_state_max_visible=3
+  toast_state_overlay_seq=0
   toast_state_visible_severity=()
   toast_state_visible_message=()
   toast_state_visible_ttl_ms=()
@@ -108,6 +119,10 @@ toast_state_is_active() {
   printf '0\n'
 }
 
+toast_state_get_overlay_seq() {
+  printf '%s\n' "${toast_state_overlay_seq}"
+}
+
 toast_state_get_visible() {
   local index="$1"
 
@@ -133,6 +148,8 @@ toast_state_insert_visible_front() {
   toast_state_visible_severity=("${severity}" "${toast_state_visible_severity[@]}")
   toast_state_visible_message=("${message}" "${toast_state_visible_message[@]}")
   toast_state_visible_ttl_ms=("${ttl_ms}" "${toast_state_visible_ttl_ms[@]}")
+  overlay_state_next_seq
+  toast_state_overlay_seq="${REPLY}"
 }
 
 toast_state_dequeue_first_queue_entry() {
