@@ -15,6 +15,8 @@ source "${TEST_ROOT}/src/components/rectangle.sh"
 source "${TEST_ROOT}/src/components/shadow.sh"
 # shellcheck source=src/components/panel.sh
 source "${TEST_ROOT}/src/components/panel.sh"
+# shellcheck source=src/state/toast_state.sh
+source "${TEST_ROOT}/src/state/toast_state.sh"
 # shellcheck source=src/components/toast.sh
 source "${TEST_ROOT}/src/components/toast.sh"
 
@@ -33,19 +35,34 @@ rectangle_set_border_charset ascii
 cell_buffer_init 24 10
 dirty_regions_init 24 10
 toast_reset_render_cache
+toast_state_reset
 
-toast_render_frame back 24 10 1 "Saved config" "success"
-assert_eq "$(dirty_regions_count)" "1" "opening toast should dirty only toast rect"
-assert_eq "${toast_render_cache_visible}" "1" "toast render should keep cache as visible"
-assert_eq "$(cell_buffer_get_cell back "${toast_render_cache_x}" "${toast_render_cache_y}")" "+|2|0|0" "toast should render border at computed origin"
+toast_state_set_max_visible 2
+toast_state_enqueue "info" "A-one" "1000"
+toast_render_stack_from_state back 24 10
+assert_eq "$(dirty_regions_count)" "1" "first render should dirty only first visible rect"
+assert_eq "${toast_render_stack_cache_count}" "1" "stack cache should store one visible toast rect"
 
-active_x="${toast_render_cache_x}"
-active_y="${toast_render_cache_y}"
-assert_eq "$(cell_buffer_get_cell back "$((active_x + 2))" "$((active_y + 1))")" "S|2|0|1" "toast should render message content"
+first_x="${toast_render_stack_cache_x[0]}"
+first_y="${toast_render_stack_cache_y[0]}"
+assert_eq "$(cell_buffer_get_cell back "$((first_x + 2))" "$((first_y + 1))")" "A|7|0|0" "first toast should render message content"
 
-toast_render_frame back 24 10 0 "" "info"
-assert_eq "$(dirty_regions_count)" "1" "closing toast should keep previous rect dirty for cleanup"
-assert_eq "${toast_render_cache_visible}" "0" "closing toast should reset cache visibility"
-assert_eq "$(cell_buffer_get_cell back "${active_x}" "${active_y}")" " |7|0|0" "closing toast should clear previous toast area"
+toast_state_enqueue "success" "B-two" "1000"
+toast_render_stack_from_state back 24 10
+assert_eq "${toast_render_stack_cache_count}" "2" "second toast should render two stacked items"
+assert_eq "$(toast_state_get_visible 0)" "success|B-two|1000" "new toast should enter at stack top"
 
-printf "PASS: toast incremental render tests\n"
+top_y="${toast_render_stack_cache_y[0]}"
+down_y="${toast_render_stack_cache_y[1]}"
+assert_eq "$((down_y > top_y))" "1" "older toast should be shifted downward"
+assert_eq "$(cell_buffer_get_cell back "$((toast_render_stack_cache_x[0] + 2))" "$((top_y + 1))")" "B|2|0|1" "top stacked toast should render newest message"
+
+toast_state_enqueue "warn" "C-three" "1000"
+assert_eq "$(toast_state_queue_size)" "1" "third toast should stay queued after hitting max_visible"
+
+toast_state_dismiss_active
+toast_render_stack_from_state back 24 10
+assert_eq "$(toast_state_get_visible 0)" "warn|C-three|1000" "queued toast should be promoted after a visible toast is dismissed"
+assert_eq "$(toast_state_queue_size)" "0" "queue should be consumed after promotion"
+
+printf "PASS: toast stack render tests\n"

@@ -39,15 +39,8 @@ toast_state_enqueue "info" "fallback default" ""
 toast_state_enqueue "warn" "explicit ttl" "750"
 toast_state_enqueue "error" "invalid fallback" "bad"
 
-toast_state_activate_next
-assert_eq "${toast_state_current_ttl_ms}" "1800" "missing ttl should fallback to configured default"
-toast_state_dismiss_active
-
-toast_state_activate_next
-assert_eq "${toast_state_current_ttl_ms}" "750" "valid ttl should override default"
-toast_state_dismiss_active
-
-toast_state_activate_next
-assert_eq "${toast_state_current_ttl_ms}" "1800" "invalid ttl should fallback to configured default"
+assert_eq "$(toast_state_get_visible 0)" "error|invalid fallback|1800" "invalid ttl should fallback to configured default"
+assert_eq "$(toast_state_get_visible 1)" "warn|explicit ttl|750" "valid ttl should be preserved"
+assert_eq "$(toast_state_get_visible 2)" "info|fallback default|1800" "missing ttl should fallback to configured default"
 
 printf "PASS: toast timeout tests\n"

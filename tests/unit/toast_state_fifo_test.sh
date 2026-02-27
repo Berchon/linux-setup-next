@@ -22,29 +22,28 @@ assert_eq() {
 toast_state_reset
 assert_eq "$(toast_state_is_active)" "0" "toast should start inactive"
 assert_eq "$(toast_state_queue_size)" "0" "queue should start empty"
+assert_eq "$(toast_state_visible_count)" "0" "visible stack should start empty"
 
 toast_state_enqueue "info" "first" "1200"
 toast_state_enqueue "warn" "second" "900"
 toast_state_enqueue "error" "third" "700"
-assert_eq "$(toast_state_queue_size)" "3" "enqueue should append items"
+assert_eq "$(toast_state_visible_count)" "3" "toasts should be visible until max stack"
+assert_eq "$(toast_state_queue_size)" "0" "queue should stay empty while there is visible capacity"
+assert_eq "$(toast_state_get_visible 0)" "error|third|700" "newest toast should be inserted on top"
+assert_eq "$(toast_state_get_visible 1)" "warn|second|900" "older visible toast should shift down"
+assert_eq "$(toast_state_get_visible 2)" "info|first|1200" "oldest visible toast should remain at bottom"
 
-toast_state_activate_next
-assert_eq "$(toast_state_is_active)" "1" "activate next should set active"
-assert_eq "${toast_state_current_message}" "first" "first enqueued message should be displayed first"
-assert_eq "${toast_state_current_severity}" "info" "severity should follow first enqueued toast"
-assert_eq "${toast_state_current_ttl_ms}" "1200" "ttl should follow first enqueued toast"
-assert_eq "$(toast_state_queue_size)" "2" "queue should remove only active item"
-
-toast_state_dismiss_active
-toast_state_activate_next
-assert_eq "${toast_state_current_message}" "second" "second toast should become active after dismiss"
-assert_eq "${toast_state_current_severity}" "warn" "second severity should be preserved"
-assert_eq "$(toast_state_queue_size)" "1" "queue should keep remaining tail"
+toast_state_enqueue "success" "fourth" "600"
+toast_state_enqueue "warn" "fifth" "500"
+assert_eq "$(toast_state_visible_count)" "3" "visible stack should stay capped at max_visible"
+assert_eq "$(toast_state_queue_size)" "2" "overflow toasts should be kept in fifo queue"
+assert_eq "${toast_state_queue_message[0]}" "fourth" "first overflow should stay first in queue"
+assert_eq "${toast_state_queue_message[1]}" "fifth" "queue should preserve overflow order"
 
 toast_state_dismiss_active
-toast_state_activate_next
-assert_eq "${toast_state_current_message}" "third" "third toast should be last in fifo order"
-assert_eq "${toast_state_current_severity}" "error" "third severity should be preserved"
-assert_eq "$(toast_state_queue_size)" "0" "queue should be empty after consuming all toasts"
+assert_eq "$(toast_state_visible_count)" "3" "dismissing top should promote one queued toast"
+assert_eq "$(toast_state_get_visible 0)" "success|fourth|600" "promoted queued toast should enter at top"
+assert_eq "$(toast_state_queue_size)" "1" "queue should consume one promoted toast"
+assert_eq "${toast_state_queue_message[0]}" "fifth" "remaining queue item should be preserved"
 
 printf "PASS: toast state fifo tests\n"
