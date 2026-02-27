@@ -58,3 +58,4 @@ Exemplos:
 - Expõe API de conteúdo interno no `Panel` via callback com passagem de `content rect` e validação de callback inexistente (E2/H2.3/T2.3.3). [PR #8] [commit bdca513]
 - Define modelo de nós de menu com estrutura `id/parent/label/desc/action`, validações de consistência e consultas de hierarquia (E3/H3.1/T3.1.1). [PR #9] [commit 55ec613]
 - Implementa pilha de navegação para submenu com operações de entrar/voltar e validação de escopo hierárquico (E3/H3.1/T3.1.2). [PR #9] [commit 7a9b30c]
+- Adiciona runner sequencial de testes com descoberta automática, execução por categoria e resumo de progresso/pass-fail no terminal. [PR #10] [commit 9af13e4]
