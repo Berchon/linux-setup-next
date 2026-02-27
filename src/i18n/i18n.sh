@@ -58,8 +58,18 @@ i18n_load_catalog() {
 i18n_translate() {
   local key="$1"
 
-  [[ -v "i18n_catalog[${key}]" ]] || return 1
-  printf '%s\n' "${i18n_catalog[${key}]}"
+  if [[ -v "i18n_catalog[${key}]" ]]; then
+    printf '%s\n' "${i18n_catalog[${key}]}"
+    return 0
+  fi
+
+  if [[ -v "I18N_LOCALE_PT[${key}]" ]]; then
+    printf '%s\n' "${I18N_LOCALE_PT[${key}]}"
+    return 0
+  fi
+
+  printf '%s\n' "${key}"
+  return 0
 }
 
 i18n_translatef() {
@@ -67,6 +77,6 @@ i18n_translatef() {
   shift
   local template=""
 
-  template="$(i18n_translate "${key}")" || return 1
-  printf "${template}\n" "$@"
+  template="$(i18n_translate "${key}")"
+  printf -- "${template}\n" "$@"
 }
