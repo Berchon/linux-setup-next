@@ -56,3 +56,27 @@ theme_config_toast_fg() {
 theme_config_toast_bg() {
   theme_config_get_int "theme.toast.bg" "3"
 }
+
+theme_config_menu_border_style() {
+  config_schema_get_value "theme.menu.border_style" "single"
+}
+
+theme_config_menu_shadow_enabled() {
+  theme_config_get_bool "theme.menu.shadow.enabled" "true"
+}
+
+theme_config_modal_border_style() {
+  config_schema_get_value "theme.modal.border_style" "single"
+}
+
+theme_config_modal_shadow_enabled() {
+  theme_config_get_bool "theme.modal.shadow.enabled" "true"
+}
+
+theme_config_toast_border_style() {
+  config_schema_get_value "theme.toast.border_style" "single"
+}
+
+theme_config_toast_shadow_enabled() {
+  theme_config_get_bool "theme.toast.shadow.enabled" "true"
+}
