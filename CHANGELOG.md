@@ -65,3 +65,6 @@ Exemplos:
 - Implementa mapeamento de teclas de navegação para ações canônicas (`up/down/left/right/enter/back/quit`) no menu (E3/H3.3/T3.3.1). [PR #12] [commit 4fe569b]
 - Implementa debounce/coalescência de repetição para ações de navegação com janela configurável de tempo (E3/H3.3/T3.3.2). [PR #12] [commit d237b56]
 - Implementa resolução de fluxo de saída via tecla `Q`, item de sair e sinais de término (`INT/TERM/HUP/EXIT`) (E3/H3.3/T3.3.3). [PR #12] [commit 734ee40]
+- Implementa modal de texto com estado dedicado e bloqueio de input de fundo durante atividade do modal (E4/H4.1/T4.1.1). [PR #13] [commit 8c65556]
+- Implementa modal de confirmação com foco explícito de botão (`confirm/cancel`), alternância de foco e resolução de ação (E4/H4.1/T4.1.2). [PR #13] [commit 17c5eb5]
+- Implementa regras de teclado restritas por contexto de modal (texto/confirmação), com consumo de input enquanto modal está ativo (E4/H4.1/T4.1.3). [PR #13] [commit ef976b8]
