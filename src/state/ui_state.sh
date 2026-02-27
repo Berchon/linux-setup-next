@@ -160,5 +160,9 @@ ui_state_apply_config_input() {
     toast_state_enqueue "success" "Saved ${config_key}=${current_value}"
   fi
 
+  if [[ "${config_key}" == "app.language" ]]; then
+    ui_state_apply_runtime_language || true
+  fi
+
   ui_state_apply_runtime_theme || true
 }
