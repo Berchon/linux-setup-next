@@ -74,3 +74,6 @@ Exemplos:
 - Evolui o toast para pilha visível limitada (novo no topo, antigos deslocados para baixo) com fila FIFO de overflow quando excede `max_visible` (E4/H4.2). [PR #14] [commit d68cd61]
 - Integra composição de overlays modal/toast com ordem explícita de z-index para garantir render previsível em sobreposição (E4/H4.3/T4.3.1). [PR #15] [commit 182fb07]
 - Corrige artefatos visuais de overlay ao fechar modal e em recomposição por resize com limpeza de retângulos em cache e teste de regressão (E4/H4.3/T4.3.2). [PR #15] [commit a255e58]
+- Implementa parser robusto de configuração `key=value` com suporte a comentários e linhas vazias (E5/H5.1/T5.1.1). [PR #16] [commit e278bdc]
+- Implementa validação de schema com aplicação de defaults para chaves obrigatórias de UI (E5/H5.1/T5.1.2). [PR #16] [commit d33bf58]
+- Carrega configuração no boot uma única vez e mantém estado normalizado em memória durante o runtime (E5/H5.1/T5.1.3). [PR #16] [commit a0457a9]

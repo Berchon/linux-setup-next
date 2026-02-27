@@ -10,6 +10,12 @@ source "${APP_DIR}/bootstrap.sh"
 
 main() {
   bootstrap_load_default_modules
+
+  if ! ui_state_boot_config; then
+    printf '%s\n' "${ui_state_last_error}" >&2
+    return 1
+  fi
+
   runtime_install_signal_traps
   runtime_init
   printf 'linux-setup-next: bootstrap ready\n'
