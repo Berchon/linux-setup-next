@@ -8,6 +8,37 @@ menu_is_non_negative_integer() {
   [[ "$1" =~ ^[0-9]+$ ]]
 }
 
+menu_map_input_key() {
+  local key="$1"
+
+  case "${key}" in
+    $'\033[A'|k|K)
+      printf 'up\n'
+      ;;
+    $'\033[B'|j|J)
+      printf 'down\n'
+      ;;
+    $'\033[D'|h|H)
+      printf 'left\n'
+      ;;
+    $'\033[C'|l|L)
+      printf 'right\n'
+      ;;
+    ""|$'\n'|$'\r')
+      printf 'enter\n'
+      ;;
+    $'\033')
+      printf 'back\n'
+      ;;
+    q|Q)
+      printf 'quit\n'
+      ;;
+    *)
+      printf 'noop\n'
+      ;;
+  esac
+}
+
 menu_render_line() {
   local buffer_name="$1"
   local x="$2"
