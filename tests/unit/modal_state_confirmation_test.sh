@@ -32,9 +32,17 @@ assert_eq "${modal_state_focus_button}" "confirm" "set focus should update activ
 modal_state_toggle_confirm_focus
 assert_eq "${modal_state_focus_button}" "cancel" "toggle focus should swap active button"
 
-modal_state_resolve_confirm "confirm"
+modal_state_resolve_confirm "confirm" >/dev/null
 assert_eq "$(modal_state_is_active)" "0" "resolving confirm should close modal"
 assert_eq "${modal_state_result}" "" "close should clear transient state"
+
+modal_state_open_confirm "Confirm" "Remove item?" "Yes" "No" "confirm"
+modal_state_apply_confirm_action focus_right >/dev/null
+assert_eq "${modal_state_focus_button}" "cancel" "focus action should move to cancel"
+modal_state_apply_confirm_action focus_left >/dev/null
+assert_eq "${modal_state_focus_button}" "confirm" "focus action should move back to confirm"
+modal_state_apply_confirm_action submit >/dev/null
+assert_eq "$(modal_state_is_active)" "0" "submit should close modal"
 
 if modal_state_open_confirm "Confirm" "Message" "Yes" "No" "invalid" >/dev/null 2>&1; then
   printf "ASSERTION FAILED: confirm modal should reject invalid focus button\n" >&2

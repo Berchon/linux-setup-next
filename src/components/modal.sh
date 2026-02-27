@@ -203,3 +203,82 @@ modal_should_block_background_input() {
 
   printf '0\n'
 }
+
+modal_map_input_key() {
+  local key="$1"
+
+  case "${key}" in
+    $'\033[D'|h|H)
+      printf 'left\n'
+      ;;
+    $'\033[C'|l|L|$'\t')
+      printf 'right\n'
+      ;;
+    ""|$'\n'|$'\r')
+      printf 'enter\n'
+      ;;
+    $'\033')
+      printf 'back\n'
+      ;;
+    q|Q)
+      printf 'quit\n'
+      ;;
+    *)
+      printf 'noop\n'
+      ;;
+  esac
+}
+
+modal_map_action_by_context() {
+  local modal_type="$1"
+  local key="$2"
+  local input_action=""
+
+  input_action="$(modal_map_input_key "${key}")"
+
+  case "${modal_type}" in
+    text)
+      case "${input_action}" in
+        enter|back|quit)
+          printf 'close\n'
+          ;;
+        *)
+          printf 'noop\n'
+          ;;
+      esac
+      ;;
+    confirm)
+      case "${input_action}" in
+        left)
+          printf 'focus_left\n'
+          ;;
+        right)
+          printf 'focus_right\n'
+          ;;
+        enter)
+          printf 'submit\n'
+          ;;
+        back|quit)
+          printf 'cancel\n'
+          ;;
+        *)
+          printf 'noop\n'
+          ;;
+      esac
+      ;;
+    *)
+      printf 'noop\n'
+      ;;
+  esac
+}
+
+modal_should_consume_input() {
+  local is_active="$1"
+
+  if [[ "${is_active}" == "1" ]]; then
+    printf '1\n'
+    return 0
+  fi
+
+  printf '0\n'
+}

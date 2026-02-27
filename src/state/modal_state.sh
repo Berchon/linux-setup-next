@@ -106,7 +106,32 @@ modal_state_resolve_confirm() {
 
   action="$(modal_state_normalize_focus_button "${action}")" || return 1
   modal_state_result="${action}"
+  printf '%s\n' "${modal_state_result}"
   modal_state_close
+}
+
+modal_state_apply_confirm_action() {
+  local action="$1"
+
+  if [[ "${modal_state_type}" != "confirm" ]]; then
+    return 1
+  fi
+
+  case "${action}" in
+    focus_left|focus_right)
+      modal_state_toggle_confirm_focus
+      printf '%s\n' "${modal_state_focus_button}"
+      ;;
+    submit)
+      modal_state_resolve_confirm "${modal_state_focus_button}"
+      ;;
+    cancel)
+      modal_state_resolve_confirm "cancel"
+      ;;
+    *)
+      return 1
+      ;;
+  esac
 }
 
 modal_state_close() {
