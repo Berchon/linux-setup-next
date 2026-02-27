@@ -50,3 +50,6 @@ Exemplos:
 - Implementa borda configurável `none|single|double` no `Rectangle`, com fallback ASCII-safe e cobertura de testes para estilos e clipping (E2/H2.1/T2.1.2). [PR #6] [commit 8024729]
 - Implementa título opcional no `Rectangle` com clipping para área disponível (com e sem borda), validado por testes de componente (E2/H2.1/T2.1.3). [PR #6] [commit 537c03c]
 - Ajusta render de bordas para suportar box-drawing Unicode (`single`/`double`) com fallback ASCII configurável por charset (`auto|unicode|ascii`) no `Rectangle` (E2/H2.1). [PR #6] [commit 4c59378]
+- Implementa primitive `Shadow` com offset configurável (`dx`, `dy`) e cobertura de testes de componente para offsets positivos, zero e negativos (E2/H2.2/T2.2.1). [PR #x] [commit 6ecc1d0]
+- Implementa clipping da `Shadow` no viewport e regra de sobreposição para não sobrescrever células já ocupadas, incluindo casos de styled-space (E2/H2.2/T2.2.2). [PR #x] [commit 70d5298]
+- Implementa ativação/desativação de `Shadow` por componente via flag de render (`enabled`) com suporte a flags numéricas e textuais (E2/H2.2/T2.2.3). [PR #x] [commit 5cd60a6]
