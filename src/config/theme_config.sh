@@ -32,3 +32,27 @@ theme_config_wallpaper_fg() {
 theme_config_wallpaper_bg() {
   theme_config_get_int "theme.wallpaper.bg" "0"
 }
+
+theme_config_menu_fg() {
+  theme_config_get_int "theme.menu.fg" "15"
+}
+
+theme_config_menu_bg() {
+  theme_config_get_int "theme.menu.bg" "4"
+}
+
+theme_config_modal_fg() {
+  theme_config_get_int "theme.modal.fg" "15"
+}
+
+theme_config_modal_bg() {
+  theme_config_get_int "theme.modal.bg" "0"
+}
+
+theme_config_toast_fg() {
+  theme_config_get_int "theme.toast.fg" "0"
+}
+
+theme_config_toast_bg() {
+  theme_config_get_int "theme.toast.bg" "3"
+}
