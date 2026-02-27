@@ -59,4 +59,17 @@ assert_eq "$(cell_buffer_get_cell back 0 0)" "-|1|2|0" "border rendering should 
 assert_eq "$(cell_buffer_get_cell back 0 1)" ".|1|2|0" "clipped left edge should not write outside viewport"
 assert_eq "$(cell_buffer_get_cell back 2 2)" "+|1|2|0" "clipped border should still draw visible corner"
 
-printf "PASS: rectangle fill/border tests\n"
+cell_buffer_init 10 4
+rectangle_render back 1 1 8 3 "." 6 1 1 single "TITLE-LONG"
+assert_eq "$(cell_buffer_get_cell back 2 1)" "T|6|1|1" "title should start at inner top area when border is enabled"
+assert_eq "$(cell_buffer_get_cell back 5 1)" "L|6|1|1" "title should preserve content inside top inner area"
+assert_eq "$(cell_buffer_get_cell back 7 1)" "-|6|1|1" "title should be clipped to available inner width"
+assert_eq "$(cell_buffer_get_cell back 8 1)" "+|6|1|1" "title clipping should preserve top-right corner"
+
+cell_buffer_init 7 3
+rectangle_render back 0 0 4 2 "." 5 2 0 none "HELLO"
+assert_eq "$(cell_buffer_get_cell back 0 0)" "H|5|2|0" "title without border should start at rectangle origin"
+assert_eq "$(cell_buffer_get_cell back 3 0)" "L|5|2|0" "title without border should clip by rectangle width"
+assert_eq "$(cell_buffer_get_cell back 4 0)" " |7|0|0" "title clipping without border should not overflow outside rectangle"
+
+printf "PASS: rectangle fill/border/title tests\n"

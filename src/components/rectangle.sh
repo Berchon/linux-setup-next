@@ -232,6 +232,63 @@ rectangle_render_border() {
   done
 }
 
+rectangle_render_title() {
+  local buffer_name="$1"
+  local x="$2"
+  local y="$3"
+  local width="$4"
+  local height="$5"
+  local border_style="$6"
+  local title="$7"
+  local fg="$8"
+  local bg="$9"
+  local bold="${10}"
+  local title_x=0
+  local title_y=0
+  local max_length=0
+  local clipped_title=""
+
+  if [[ -z "${title}" ]]; then
+    return 0
+  fi
+
+  if ! rectangle_is_integer "${x}" || ! rectangle_is_integer "${y}"; then
+    return 1
+  fi
+
+  if ! rectangle_is_non_negative_integer "${width}" || ! rectangle_is_non_negative_integer "${height}"; then
+    return 1
+  fi
+
+  if ! rectangle_border_style_is_valid "${border_style}"; then
+    return 1
+  fi
+
+  if ((width == 0 || height == 0)); then
+    return 0
+  fi
+
+  title_x="${x}"
+  title_y="${y}"
+  max_length="${width}"
+
+  if [[ "${border_style}" != "none" ]]; then
+    if ((width <= 2)); then
+      return 0
+    fi
+
+    title_x=$((x + 1))
+    max_length=$((width - 2))
+  fi
+
+  if ((max_length <= 0)); then
+    return 0
+  fi
+
+  clipped_title="${title:0:max_length}"
+  cell_buffer_write_text "${buffer_name}" "${title_x}" "${title_y}" "${clipped_title}" "${fg}" "${bg}" "${bold}"
+}
+
 rectangle_render() {
   local buffer_name="$1"
   local x="$2"
@@ -243,10 +300,15 @@ rectangle_render() {
   local bg="$8"
   local bold="$9"
   local border_style="${10:-none}"
+  local title="${11:-}"
 
   if ! rectangle_render_fill "${buffer_name}" "${x}" "${y}" "${width}" "${height}" "${fill_char}" "${fg}" "${bg}" "${bold}"; then
     return 1
   fi
 
-  rectangle_render_border "${buffer_name}" "${x}" "${y}" "${width}" "${height}" "${border_style}" "${fg}" "${bg}" "${bold}"
+  if ! rectangle_render_border "${buffer_name}" "${x}" "${y}" "${width}" "${height}" "${border_style}" "${fg}" "${bg}" "${bold}"; then
+    return 1
+  fi
+
+  rectangle_render_title "${buffer_name}" "${x}" "${y}" "${width}" "${height}" "${border_style}" "${title}" "${fg}" "${bg}" "${bold}"
 }
