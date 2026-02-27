@@ -53,3 +53,6 @@ Exemplos:
 - Implementa primitive `Shadow` com offset configurável (`dx`, `dy`) e cobertura de testes de componente para offsets positivos, zero e negativos (E2/H2.2/T2.2.1). [PR #7] [commit 6ecc1d0]
 - Implementa clipping da `Shadow` no viewport e regras de sobreposição para a área visível da sombra (E2/H2.2/T2.2.2). [PR #7] [commit 70d5298]
 - Implementa ativação/desativação de `Shadow` por componente via flag de render (`enabled`) com suporte a flags numéricas e textuais (E2/H2.2/T2.2.3). [PR #7] [commit 5cd60a6]
+- Implementa `Panel` como composição de `Rectangle + Shadow` com render integrado e teste de componente dedicado (E2/H2.3/T2.3.1). [PR #x] [commit 14e9cea]
+- Adiciona padding interno configurável por lado no `Panel` com cálculo explícito de área de conteúdo (`content rect`) e cobertura de casos limite (E2/H2.3/T2.3.2). [PR #x] [commit 40e3ad6]
+- Expõe API de conteúdo interno no `Panel` via callback com passagem de `content rect` e validação de callback inexistente (E2/H2.3/T2.3.3). [PR #x] [commit bdca513]
