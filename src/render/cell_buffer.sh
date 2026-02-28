@@ -144,16 +144,39 @@ cell_buffer_write_cell() {
   local bold="$7"
   local idx=0
 
-  if ! idx="$(cell_buffer_index "${x}" "${y}")"; then
+  if [[ ! "${x}" =~ ^-?[0-9]+$ ]] || [[ ! "${y}" =~ ^-?[0-9]+$ ]]; then
     return 1
   fi
+
+  if ((x < 0 || y < 0 || x >= cell_buffer_width || y >= cell_buffer_height)); then
+    return 1
+  fi
+
+  idx=$((y * cell_buffer_width + x))
 
   if [[ -z "${cell_char}" ]]; then
     cell_char="${cell_buffer_default_char}"
   fi
 
   cell_char="${cell_char:0:1}"
-  cell_buffer_set_cell_at_index "${buffer_name}" "${idx}" "${cell_char}" "${fg}" "${bg}" "${bold}"
+
+  case "${buffer_name}" in
+    front)
+      cell_front_chars[idx]="${cell_char}"
+      cell_front_fgs[idx]="${fg}"
+      cell_front_bgs[idx]="${bg}"
+      cell_front_bolds[idx]="${bold}"
+      ;;
+    back)
+      cell_back_chars[idx]="${cell_char}"
+      cell_back_fgs[idx]="${fg}"
+      cell_back_bgs[idx]="${bg}"
+      cell_back_bolds[idx]="${bold}"
+      ;;
+    *)
+      return 1
+      ;;
+  esac
 }
 
 cell_buffer_write_text() {
@@ -168,6 +191,7 @@ cell_buffer_write_text() {
   local offset=0
   local target_x=0
   local char=""
+  local idx=0
 
   if [[ ! "${x}" =~ ^-?[0-9]+$ ]] || [[ ! "${y}" =~ ^-?[0-9]+$ ]]; then
     return 1
@@ -184,8 +208,26 @@ cell_buffer_write_text() {
       continue
     fi
 
+    idx=$((y * cell_buffer_width + target_x))
     char="${text:offset:1}"
-    cell_buffer_write_cell "${buffer_name}" "${target_x}" "${y}" "${char}" "${fg}" "${bg}" "${bold}"
+
+    case "${buffer_name}" in
+      front)
+        cell_front_chars[idx]="${char}"
+        cell_front_fgs[idx]="${fg}"
+        cell_front_bgs[idx]="${bg}"
+        cell_front_bolds[idx]="${bold}"
+        ;;
+      back)
+        cell_back_chars[idx]="${char}"
+        cell_back_fgs[idx]="${fg}"
+        cell_back_bgs[idx]="${bg}"
+        cell_back_bolds[idx]="${bold}"
+        ;;
+      *)
+        return 1
+        ;;
+    esac
   done
 }
 

@@ -150,7 +150,6 @@ diff_renderer_append_run() {
 diff_renderer_collect_runs() {
   local dirty_count=0
   local dirty_index=0
-  local rect=""
   local rect_x=0
   local rect_y=0
   local rect_width=0
@@ -158,6 +157,7 @@ diff_renderer_collect_runs() {
   local y=0
   local x=0
   local idx=0
+  local run_index=0
   local run_active=0
   local run_x=0
   local run_y=0
@@ -170,16 +170,18 @@ diff_renderer_collect_runs() {
   local cell_bg=0
   local cell_bold=0
 
-  if ! declare -F dirty_regions_count >/dev/null || ! declare -F dirty_regions_get >/dev/null; then
+  if ! declare -p dirty_regions_xs >/dev/null 2>&1 || ! declare -p dirty_regions_ys >/dev/null 2>&1 || ! declare -p dirty_regions_widths >/dev/null 2>&1 || ! declare -p dirty_regions_heights >/dev/null 2>&1; then
     return 1
   fi
 
   diff_renderer_reset_runs
-  dirty_count="$(dirty_regions_count)"
+  dirty_count="${#dirty_regions_xs[@]}"
 
   for ((dirty_index = 0; dirty_index < dirty_count; dirty_index++)); do
-    rect="$(dirty_regions_get "${dirty_index}")"
-    IFS='|' read -r rect_x rect_y rect_width rect_height <<< "${rect}"
+    rect_x="${dirty_regions_xs[dirty_index]}"
+    rect_y="${dirty_regions_ys[dirty_index]}"
+    rect_width="${dirty_regions_widths[dirty_index]}"
+    rect_height="${dirty_regions_heights[dirty_index]}"
 
     for ((y = rect_y; y < rect_y + rect_height; y++)); do
       run_active=0
@@ -188,9 +190,15 @@ diff_renderer_collect_runs() {
       for ((x = rect_x; x < rect_x + rect_width; x++)); do
         idx=$((y * cell_buffer_width + x))
 
-        if ! diff_renderer_cell_differs_at_index "${idx}"; then
+        if [[ "${cell_front_chars[idx]}" == "${cell_back_chars[idx]}" ]] && [[ "${cell_front_fgs[idx]}" == "${cell_back_fgs[idx]}" ]] && [[ "${cell_front_bgs[idx]}" == "${cell_back_bgs[idx]}" ]] && [[ "${cell_front_bolds[idx]}" == "${cell_back_bolds[idx]}" ]]; then
           if ((run_active == 1)); then
-            diff_renderer_append_run "${run_x}" "${run_y}" "${run_text}" "${run_fg}" "${run_bg}" "${run_bold}"
+            diff_renderer_run_xs[run_index]="${run_x}"
+            diff_renderer_run_ys[run_index]="${run_y}"
+            diff_renderer_run_texts[run_index]="${run_text}"
+            diff_renderer_run_fgs[run_index]="${run_fg}"
+            diff_renderer_run_bgs[run_index]="${run_bg}"
+            diff_renderer_run_bolds[run_index]="${run_bold}"
+            run_index=$((run_index + 1))
             run_active=0
             run_text=""
           fi
@@ -208,7 +216,13 @@ diff_renderer_collect_runs() {
         fi
 
         if ((run_active == 1)); then
-          diff_renderer_append_run "${run_x}" "${run_y}" "${run_text}" "${run_fg}" "${run_bg}" "${run_bold}"
+          diff_renderer_run_xs[run_index]="${run_x}"
+          diff_renderer_run_ys[run_index]="${run_y}"
+          diff_renderer_run_texts[run_index]="${run_text}"
+          diff_renderer_run_fgs[run_index]="${run_fg}"
+          diff_renderer_run_bgs[run_index]="${run_bg}"
+          diff_renderer_run_bolds[run_index]="${run_bold}"
+          run_index=$((run_index + 1))
         fi
 
         run_active=1
@@ -221,7 +235,97 @@ diff_renderer_collect_runs() {
       done
 
       if ((run_active == 1)); then
-        diff_renderer_append_run "${run_x}" "${run_y}" "${run_text}" "${run_fg}" "${run_bg}" "${run_bold}"
+        diff_renderer_run_xs[run_index]="${run_x}"
+        diff_renderer_run_ys[run_index]="${run_y}"
+        diff_renderer_run_texts[run_index]="${run_text}"
+        diff_renderer_run_fgs[run_index]="${run_fg}"
+        diff_renderer_run_bgs[run_index]="${run_bg}"
+        diff_renderer_run_bolds[run_index]="${run_bold}"
+        run_index=$((run_index + 1))
+      fi
+    done
+  done
+}
+
+diff_renderer_collect_runs_assume_changed() {
+  local dirty_count=0
+  local dirty_index=0
+  local rect_x=0
+  local rect_y=0
+  local rect_width=0
+  local rect_height=0
+  local y=0
+  local x=0
+  local idx=0
+  local run_index=0
+  local run_active=0
+  local run_x=0
+  local run_y=0
+  local run_fg=0
+  local run_bg=0
+  local run_bold=0
+  local run_text=""
+  local cell_char=""
+  local cell_fg=0
+  local cell_bg=0
+  local cell_bold=0
+
+  if ! declare -p dirty_regions_xs >/dev/null 2>&1 || ! declare -p dirty_regions_ys >/dev/null 2>&1 || ! declare -p dirty_regions_widths >/dev/null 2>&1 || ! declare -p dirty_regions_heights >/dev/null 2>&1; then
+    return 1
+  fi
+
+  diff_renderer_reset_runs
+  dirty_count="${#dirty_regions_xs[@]}"
+
+  for ((dirty_index = 0; dirty_index < dirty_count; dirty_index++)); do
+    rect_x="${dirty_regions_xs[dirty_index]}"
+    rect_y="${dirty_regions_ys[dirty_index]}"
+    rect_width="${dirty_regions_widths[dirty_index]}"
+    rect_height="${dirty_regions_heights[dirty_index]}"
+
+    for ((y = rect_y; y < rect_y + rect_height; y++)); do
+      run_active=0
+      run_text=""
+
+      for ((x = rect_x; x < rect_x + rect_width; x++)); do
+        idx=$((y * cell_buffer_width + x))
+        cell_char="${cell_back_chars[idx]}"
+        cell_fg="${cell_back_fgs[idx]}"
+        cell_bg="${cell_back_bgs[idx]}"
+        cell_bold="${cell_back_bolds[idx]}"
+
+        if ((run_active == 1)) && [[ "${cell_fg}" == "${run_fg}" ]] && [[ "${cell_bg}" == "${run_bg}" ]] && [[ "${cell_bold}" == "${run_bold}" ]]; then
+          run_text+="${cell_char}"
+          continue
+        fi
+
+        if ((run_active == 1)); then
+          diff_renderer_run_xs[run_index]="${run_x}"
+          diff_renderer_run_ys[run_index]="${run_y}"
+          diff_renderer_run_texts[run_index]="${run_text}"
+          diff_renderer_run_fgs[run_index]="${run_fg}"
+          diff_renderer_run_bgs[run_index]="${run_bg}"
+          diff_renderer_run_bolds[run_index]="${run_bold}"
+          run_index=$((run_index + 1))
+        fi
+
+        run_active=1
+        run_x="${x}"
+        run_y="${y}"
+        run_fg="${cell_fg}"
+        run_bg="${cell_bg}"
+        run_bold="${cell_bold}"
+        run_text="${cell_char}"
+      done
+
+      if ((run_active == 1)); then
+        diff_renderer_run_xs[run_index]="${run_x}"
+        diff_renderer_run_ys[run_index]="${run_y}"
+        diff_renderer_run_texts[run_index]="${run_text}"
+        diff_renderer_run_fgs[run_index]="${run_fg}"
+        diff_renderer_run_bgs[run_index]="${run_bg}"
+        diff_renderer_run_bolds[run_index]="${run_bold}"
+        run_index=$((run_index + 1))
       fi
     done
   done
@@ -363,6 +467,7 @@ diff_renderer_style_sequence() {
 }
 
 diff_renderer_render_dirty() {
+  local assume_changed="${1:-0}"
   local run_count=0
   local run_index=0
   local run_x=0
@@ -374,28 +479,99 @@ diff_renderer_render_dirty() {
   local current_fg=""
   local current_bg=""
   local current_bold=""
+  local ansi_buffer=""
+  local style_sequence=""
+  local use_fast_style=0
+  local fg_fast=0
+  local bg_fast=0
+  local fg_code_fast=30
+  local bg_code_fast=40
 
   if ! declare -F cell_buffer_swap >/dev/null || ! declare -F dirty_regions_reset >/dev/null; then
     return 1
   fi
 
   diff_renderer_refresh_color_capacity
-  diff_renderer_collect_runs
-  run_count="$(diff_renderer_run_count)"
+  if [[ "${assume_changed}" == "1" ]]; then
+    use_fast_style=1
+    diff_renderer_collect_runs_assume_changed
+  else
+    diff_renderer_collect_runs
+  fi
+  run_count="${#diff_renderer_run_xs[@]}"
 
   for ((run_index = 0; run_index < run_count; run_index++)); do
-    IFS='|' read -r run_x run_y run_text run_fg run_bg run_bold <<< "$(diff_renderer_get_run "${run_index}")"
-    diff_renderer_emit_ansi "$(diff_renderer_cursor_sequence "${run_x}" "${run_y}")"
+    run_x="${diff_renderer_run_xs[run_index]}"
+    run_y="${diff_renderer_run_ys[run_index]}"
+    run_text="${diff_renderer_run_texts[run_index]}"
+    run_fg="${diff_renderer_run_fgs[run_index]}"
+    run_bg="${diff_renderer_run_bgs[run_index]}"
+    run_bold="${diff_renderer_run_bolds[run_index]}"
+    ansi_buffer+=$'\033['"$((run_y + 1))"';'"$((run_x + 1))"'H'
 
     if [[ "${run_fg}" != "${current_fg}" || "${run_bg}" != "${current_bg}" || "${run_bold}" != "${current_bold}" ]]; then
-      diff_renderer_emit_ansi "$(diff_renderer_style_sequence "${run_fg}" "${run_bg}" "${run_bold}")"
+      if ((use_fast_style == 1)); then
+        fg_fast="${run_fg}"
+        bg_fast="${run_bg}"
+        if ((diff_renderer_color_capacity >= 256)); then
+          if ((fg_fast < 0)); then
+            fg_fast=0
+          elif ((fg_fast > 255)); then
+            fg_fast=255
+          fi
+          if ((bg_fast < 0)); then
+            bg_fast=0
+          elif ((bg_fast > 255)); then
+            bg_fast=255
+          fi
+
+          if [[ "${run_bold}" == "1" ]]; then
+            ansi_buffer+=$'\033[1;38;5;'"${fg_fast}"$';48;5;'"${bg_fast}"'m'
+          else
+            ansi_buffer+=$'\033[22;38;5;'"${fg_fast}"$';48;5;'"${bg_fast}"'m'
+          fi
+        else
+          if ((fg_fast < 0)); then
+            fg_fast=0
+          fi
+          if ((bg_fast < 0)); then
+            bg_fast=0
+          fi
+          fg_fast=$((fg_fast % 16))
+          bg_fast=$((bg_fast % 16))
+
+          if ((fg_fast < 8)); then
+            fg_code_fast=$((30 + fg_fast))
+          else
+            fg_code_fast=$((90 + fg_fast - 8))
+          fi
+          if ((bg_fast < 8)); then
+            bg_code_fast=$((40 + bg_fast))
+          else
+            bg_code_fast=$((100 + bg_fast - 8))
+          fi
+
+          if [[ "${run_bold}" == "1" ]]; then
+            ansi_buffer+=$'\033[1;'"${fg_code_fast}"';'"${bg_code_fast}"'m'
+          else
+            ansi_buffer+=$'\033[22;'"${fg_code_fast}"';'"${bg_code_fast}"'m'
+          fi
+        fi
+      else
+        style_sequence="$(diff_renderer_style_sequence "${run_fg}" "${run_bg}" "${run_bold}")"
+        ansi_buffer+="${style_sequence}"
+      fi
       current_fg="${run_fg}"
       current_bg="${run_bg}"
       current_bold="${run_bold}"
     fi
 
-    diff_renderer_emit_ansi "${run_text}"
+    ansi_buffer+="${run_text}"
   done
+
+  if [[ -n "${ansi_buffer}" ]]; then
+    diff_renderer_emit_ansi "${ansi_buffer}"
+  fi
 
   cell_buffer_swap
   dirty_regions_reset
