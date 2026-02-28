@@ -7,6 +7,8 @@ declare -g external_runner_allowed_dir="${EXTERNAL_RUNNER_DEFAULT_ALLOWED_DIR}"
 declare -g external_runner_last_error=""
 declare -g external_runner_last_rc=0
 declare -g external_runner_last_timed_out=0
+declare -g external_runner_last_stdout=""
+declare -g external_runner_last_stderr=""
 
 external_runner__canonicalize_dir() {
   local dir_path="$1"
@@ -41,6 +43,8 @@ external_runner_reset() {
   external_runner_last_error=""
   external_runner_last_rc=0
   external_runner_last_timed_out=0
+  external_runner_last_stdout=""
+  external_runner_last_stderr=""
   external_runner_allowed_dir="${EXTERNAL_RUNNER_DEFAULT_ALLOWED_DIR}"
 }
 
@@ -148,6 +152,47 @@ external_runner_execute_with_timeout() {
     external_runner_last_timed_out=1
     external_runner_last_error="external_runner: execution timed out after ${timeout_seconds}s"
   fi
+
+  return "${rc}"
+}
+
+external_runner_sanitize_output() {
+  local raw_text="$1"
+
+  printf '%s' "${raw_text}" \
+    | sed -E 's/\x1B\[[0-9;?]*[ -/]*[@-~]//g' \
+    | tr '\r' '\n' \
+    | tr -d '\000-\010\013\014\016-\037\177'
+}
+
+external_runner_run_script() {
+  local script_input="$1"
+  local timeout_seconds="$2"
+  shift 2
+  local stdout_file=""
+  local stderr_file=""
+  local stdout_raw=""
+  local stderr_raw=""
+  local rc=0
+
+  external_runner_last_stdout=""
+  external_runner_last_stderr=""
+
+  stdout_file="$(mktemp)"
+  stderr_file="$(mktemp)"
+
+  if external_runner_execute_with_timeout "${script_input}" "${timeout_seconds}" "$@" >"${stdout_file}" 2>"${stderr_file}"; then
+    rc=0
+  else
+    rc="$?"
+  fi
+
+  stdout_raw="$(cat "${stdout_file}")"
+  stderr_raw="$(cat "${stderr_file}")"
+  rm -f "${stdout_file}" "${stderr_file}"
+
+  external_runner_last_stdout="$(external_runner_sanitize_output "${stdout_raw}")"
+  external_runner_last_stderr="$(external_runner_sanitize_output "${stderr_raw}")"
 
   return "${rc}"
 }
