@@ -5,6 +5,8 @@ readonly EXTERNAL_RUNNER_DEFAULT_ALLOWED_DIR="${EXTERNAL_RUNNER_ROOT}/scripts"
 
 declare -g external_runner_allowed_dir="${EXTERNAL_RUNNER_DEFAULT_ALLOWED_DIR}"
 declare -g external_runner_last_error=""
+declare -g external_runner_last_rc=0
+declare -g external_runner_last_timed_out=0
 
 external_runner__canonicalize_dir() {
   local dir_path="$1"
@@ -37,6 +39,8 @@ external_runner__canonicalize_file() {
 
 external_runner_reset() {
   external_runner_last_error=""
+  external_runner_last_rc=0
+  external_runner_last_timed_out=0
   external_runner_allowed_dir="${EXTERNAL_RUNNER_DEFAULT_ALLOWED_DIR}"
 }
 
@@ -92,4 +96,58 @@ external_runner_resolve_script_path() {
 
   printf '%s' "${resolved_path}"
   return 0
+}
+
+external_runner_has_timeout_command() {
+  command -v timeout >/dev/null 2>&1
+}
+
+external_runner_timeout_command() {
+  timeout --signal=TERM --kill-after=1 "$@"
+}
+
+external_runner_execute_with_timeout() {
+  local script_input="$1"
+  local timeout_seconds="$2"
+  shift 2
+  local resolved_script=""
+  local rc=0
+
+  external_runner_last_error=""
+  external_runner_last_rc=0
+  external_runner_last_timed_out=0
+
+  resolved_script="$(external_runner_resolve_script_path "${script_input}")" || return 1
+
+  if [[ ! "${timeout_seconds}" =~ ^[1-9][0-9]*$ ]]; then
+    external_runner_last_error="external_runner: timeout must be a positive integer"
+    return 1
+  fi
+
+  if [[ ! -x "${resolved_script}" ]]; then
+    external_runner_last_error="external_runner: script is not executable: ${script_input}"
+    return 1
+  fi
+
+  if ! external_runner_has_timeout_command; then
+    external_runner_last_error="external_runner: timeout command is unavailable"
+    return 1
+  fi
+
+  external_runner_timeout_command "${timeout_seconds}" "${resolved_script}" "$@"
+  rc="$?"
+
+  if [[ "${rc}" -eq 0 ]]; then
+    external_runner_last_rc=0
+    return 0
+  fi
+
+  external_runner_last_rc="${rc}"
+
+  if [[ "${rc}" -eq 124 ]]; then
+    external_runner_last_timed_out=1
+    external_runner_last_error="external_runner: execution timed out after ${timeout_seconds}s"
+  fi
+
+  return "${rc}"
 }
