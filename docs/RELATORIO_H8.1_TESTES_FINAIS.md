@@ -14,7 +14,7 @@
   - `tests/e2e`
   - `tests/perf`
 - Resultado consolidado após inclusão da cobertura final por nível:
-  - `64/64 PASS` (sem falhas)
+  - `65/65 PASS` (sem falhas)
 
 ## 3. T8.1.2 - Fechamento de regressões
 - Foi adicionado teste de regressão de contrato para ações de referência:

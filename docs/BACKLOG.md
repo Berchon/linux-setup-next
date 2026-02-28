@@ -16,6 +16,7 @@
 7. E6 - i18n
 8. E7 - Integração com scripts externos
 9. E8 - Hardening e validação final da V1
+10. E9 - Paridade funcional com legacy para release v1.0.0
 
 ## 3. Épicos detalhados
 
@@ -211,6 +212,7 @@ Critério de saída E8:
 - `E6` depende de `E5` (idioma em configuração) e `E3`.
 - `E7` depende de `E3` e `E4`.
 - `E8` depende de `E0` a `E7`.
+- `E9` depende de `E0` a `E8`.
 
 ## 5. Definição de pronto por história
 1. Código implementado e revisado.
@@ -219,3 +221,59 @@ Critério de saída E8:
 4. Documentação atualizada.
 5. `CHANGELOG.md` atualizado com a mudança da história.
 6. Aprovado por você antes de avançar.
+
+## 6. Backlog pós-V1 (paridade para release v1.0.0)
+Objetivo: lançar `v1.0.0` quando o `linux-setup-next` rodar como o `linux-setup-legacy/menu.sh`, preservando todas as funcionalidades essenciais.
+
+Princípios:
+1. Priorizar entrega da aplicação funcional antes de novas features.
+2. Manter implementação em camadas modulares do `next`, usando o `legacy` como referência de comportamento.
+3. Fechar cada história com evidência automatizada e checklist de paridade manual.
+
+Definição de paridade funcional (`legacy -> next`):
+1. Fluxos principais de navegação e submenus equivalentes.
+2. Ações externas (`install/remove/status`) funcionando no fluxo real de UI.
+3. Modal, toast, barra de mensagem e i18n operando em runtime.
+4. Terminal restaurado corretamente em saída normal e por sinal.
+5. Suíte oficial sem falhas e checklist de paridade aprovado.
+
+## E9 - Paridade funcional com linux-setup-legacy (release v1.0.0)
+Objetivo: entregar a aplicação rodando fim a fim com comportamento equivalente ao `legacy`, pronta para tag `v1.0.0`.
+
+### H9.1 - App shell em runtime real
+- T9.1.1 Integrar loop principal de runtime no entrypoint da aplicação.
+- T9.1.2 Renderizar layout base (background, header, footer e área central).
+- T9.1.3 Garantir barra de mensagem inicial e cleanup terminal idempotente no fluxo completo.
+
+### H9.2 - Menu principal e submenus em tela real
+- T9.2.1 Conectar modelo de menu ao render da tela principal.
+- T9.2.2 Implementar navegação completa (`up/down/enter/back/quit`) no app rodando.
+- T9.2.3 Validar caminhos de submenu equivalentes aos fluxos do `legacy`.
+
+### H9.3 - Fluxos de ações externas fim a fim
+- T9.3.1 Ligar itens de menu ao `action_router` e ao `external_runner`.
+- T9.3.2 Exibir retorno de `install/remove/status` no contexto correto da UI.
+- T9.3.3 Garantir mapeamento de severidade e timeout no fluxo real.
+
+### H9.4 - Modal e confirmação no fluxo real
+- T9.4.1 Exibir modal de status após ações que exigem detalhe de retorno.
+- T9.4.2 Exibir modal de confirmação em ações destrutivas/sensíveis.
+- T9.4.3 Garantir bloqueio de fundo e foco correto enquanto modal está ativo.
+
+### H9.5 - Toast e barra de mensagem operacional
+- T9.5.1 Exibir toast para feedback curto de sucesso/erro/aviso.
+- T9.5.2 Integrar barra de mensagem com estado contextual da tela ativa.
+- T9.5.3 Garantir convivência visual de menu/modal/toast/barra sem artefatos.
+
+### H9.6 - i18n em runtime com persistência
+- T9.6.1 Disponibilizar troca de idioma PT/EN durante execução.
+- T9.6.2 Atualizar textos renderizados após mudança de idioma.
+- T9.6.3 Persistir idioma selecionado e validar comportamento pós-restart.
+
+### H9.7 - Hardening de paridade e release candidate
+- T9.7.1 Consolidar checklist `legacy vs next` com cobertura dos fluxos principais.
+- T9.7.2 Corrigir lacunas de paridade identificadas na validação final.
+- T9.7.3 Preparar pacote de release (`CHANGELOG`, validações finais e prontidão para tag `v1.0.0`).
+
+Critério de saída E9:
+- `linux-setup-next` funcionalmente equivalente ao `legacy` nos fluxos essenciais, com suíte oficial passando e pronto para release `v1.0.0`.

@@ -75,7 +75,7 @@ Métricas:
 - Resultado consolidado e rastreabilidade por dimensão em `docs/RELATORIO_H8.1_TESTES_FINAIS.md`.
 - Situação da rodada final H8.1:
   - cobertura automatizada ativa em `unit/component/integration/e2e/perf`;
-  - execução da suíte oficial sem falhas na baseline da história.
+  - execução da suíte oficial sem falhas na baseline da história (`65/65 PASS`).
 
 ## 5. Casos obrigatórios por requisito
 

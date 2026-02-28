@@ -13,7 +13,11 @@ Alcançar paridade funcional com a versão atual de referência, com arquitetura
 - `docs/PADROES_DE_ENGENHARIA.md`
 - `docs/MATRIZ_DE_RASTREABILIDADE.md`
 - `docs/PLANEJAMENTO_DE_ENTREGA.md`
+- `docs/GUIA_DE_OPERACAO.md`
+- `docs/TROUBLESHOOTING.md`
+- `docs/REVISAO_TECNICA_V1.md`
 - `CHANGELOG.md`
 
 ## Estado
-Documentação inicial criada. Implementação ainda não iniciada.
+- V1 implementada até `E8/H8.1`, com suíte oficial validada.
+- Próximo item oficial do backlog: `E8/H8.2` (fechamento documental final da fase).
