@@ -71,6 +71,12 @@ Métricas:
 ## 4.4 Dependências opcionais
 - com e sem utilitários opcionais de teclado externo.
 
+## 4.5 Consolidação H8.1 (2026-02-28)
+- Resultado consolidado e rastreabilidade por dimensão em `docs/RELATORIO_H8.1_TESTES_FINAIS.md`.
+- Situação da rodada final H8.1:
+  - cobertura automatizada ativa em `unit/component/integration/e2e/perf`;
+  - execução da suíte oficial sem falhas na baseline da história.
+
 ## 5. Casos obrigatórios por requisito
 
 ## CT-RF003-001 (render incremental)
