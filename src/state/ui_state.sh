@@ -57,7 +57,20 @@ ui_state_boot_config() {
   ui_state_config_loaded=1
   ui_state_config_load_count=$((ui_state_config_load_count + 1))
   ui_state_config_source_path="${config_path}"
+  ui_state_apply_runtime_language || return 1
   ui_state_apply_runtime_theme || return 1
+  return 0
+}
+
+ui_state_apply_runtime_language() {
+  local language=""
+
+  if ! declare -F i18n_load_catalog >/dev/null; then
+    return 0
+  fi
+
+  language="$(config_schema_get_value "app.language" "pt")"
+  i18n_load_catalog "${language}"
   return 0
 }
 
@@ -137,15 +150,42 @@ ui_state_apply_config_input() {
   if ! ui_state_persist_config "${persist_path}"; then
     config_schema_set_value "${config_key}" "${previous_value}" || true
     if declare -F toast_state_enqueue >/dev/null; then
-      toast_state_enqueue "error" "Failed to save ${config_key}"
+      ui_state_enqueue_config_save_error_toast "${config_key}"
     fi
     return 1
   fi
 
+  if [[ "${config_key}" == "app.language" ]]; then
+    ui_state_apply_runtime_language || true
+  fi
+
   if declare -F toast_state_enqueue >/dev/null; then
     current_value="$(config_schema_get_value "${config_key}")"
-    toast_state_enqueue "success" "Saved ${config_key}=${current_value}"
+    ui_state_enqueue_config_save_success_toast "${config_key}" "${current_value}"
   fi
 
   ui_state_apply_runtime_theme || true
+}
+
+ui_state_enqueue_config_save_success_toast() {
+  local key="$1"
+  local value="$2"
+  local message="Saved ${key}=${value}"
+
+  if declare -F i18n_translatef >/dev/null && [[ -n "${I18N_KEY_TOAST_CONFIG_SAVE_SUCCESS:-}" ]]; then
+    message="$(i18n_translatef "${I18N_KEY_TOAST_CONFIG_SAVE_SUCCESS}" "${key}" "${value}")"
+  fi
+
+  toast_state_enqueue "success" "${message}"
+}
+
+ui_state_enqueue_config_save_error_toast() {
+  local key="$1"
+  local message="Failed to save ${key}"
+
+  if declare -F i18n_translatef >/dev/null && [[ -n "${I18N_KEY_TOAST_CONFIG_SAVE_ERROR:-}" ]]; then
+    message="$(i18n_translatef "${I18N_KEY_TOAST_CONFIG_SAVE_ERROR}" "${key}")"
+  fi
+
+  toast_state_enqueue "error" "${message}"
 }

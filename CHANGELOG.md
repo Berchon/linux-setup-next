@@ -88,3 +88,6 @@ Exemplos:
 - Centraliza chaves de texto de i18n em registro único com API de descoberta/validação para reduzir acoplamento de strings (E6/H6.1/T6.1.1). [PR #19] [commit cd9c22f]
 - Cria catálogos de idioma PT/EN e runtime de carregamento/tradução por chave para base do i18n da UI (E6/H6.1/T6.1.2). [PR #19] [commit 14ac2c9]
 - Define fallback determinístico para chave ausente (`idioma atual -> PT -> id da chave`) no runtime de i18n com cobertura unitária (E6/H6.1/T6.1.3). [PR #19] [commit b7fb242]
+- Carrega o catálogo de i18n no boot a partir de `app.language` já resolvido em configuração, garantindo idioma inicial consistente com arquivo persistido (E6/H6.2/T6.2.1). [PR #20] [commit 293685b]
+- Permite troca de idioma em runtime via menu de configurações com atualização imediata do catálogo após edição persistida (E6/H6.2/T6.2.2). [PR #20] [commit 2e2235b]
+- Persiste alteração de idioma com feedback por toast traduzido via i18n e fallback seguro de mensagem (E6/H6.2/T6.2.3). [PR #20] [commit 5a9be98]
