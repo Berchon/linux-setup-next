@@ -8,6 +8,7 @@ declare -g external_runner_last_error=""
 declare -g external_runner_last_rc=0
 declare -g external_runner_last_timed_out=0
 declare -g external_runner_last_severity="info"
+declare -g external_runner_last_optional_dependency_missing=0
 declare -g external_runner_last_stdout=""
 declare -g external_runner_last_stderr=""
 
@@ -45,6 +46,7 @@ external_runner_reset() {
   external_runner_last_rc=0
   external_runner_last_timed_out=0
   external_runner_last_severity="info"
+  external_runner_last_optional_dependency_missing=0
   external_runner_last_stdout=""
   external_runner_last_stderr=""
   external_runner_allowed_dir="${EXTERNAL_RUNNER_DEFAULT_ALLOWED_DIR}"
@@ -123,6 +125,7 @@ external_runner_execute_with_timeout() {
   external_runner_last_rc=0
   external_runner_last_timed_out=0
   external_runner_last_severity="info"
+  external_runner_last_optional_dependency_missing=0
 
   resolved_script="$(external_runner_resolve_script_path "${script_input}")" || return 1
 
@@ -212,6 +215,8 @@ external_runner_map_exit_code_to_severity() {
 
   if [[ "${timed_out}" == "1" || "${rc}" -eq 124 ]]; then
     severity="error"
+  elif external_runner_is_optional_dependency_missing "${rc}" "${external_runner_last_stderr}" "${external_runner_last_error}"; then
+    severity="warn"
   elif [[ "${action}" == "status" ]]; then
     case "${rc}" in
       0) severity="info" ;;
@@ -229,6 +234,30 @@ external_runner_map_exit_code_to_severity() {
   external_runner_last_severity="${severity}"
   REPLY="${severity}"
   printf '%s' "${severity}"
+}
+
+external_runner_is_optional_dependency_missing() {
+  local rc="$1"
+  local stderr_text="${2:-}"
+  local error_text="${3:-}"
+  local combined_text=""
+
+  if [[ "${rc}" -eq 127 ]]; then
+    return 0
+  fi
+
+  combined_text="${stderr_text}"$'\n'"${error_text}"
+  combined_text="${combined_text,,}"
+
+  if [[ "${combined_text}" == *"command not found"* ]]; then
+    return 0
+  fi
+
+  if [[ "${combined_text}" == *"dependency not available"* ]]; then
+    return 0
+  fi
+
+  return 1
 }
 
 external_runner_build_result_message() {
@@ -284,4 +313,31 @@ external_runner_present_result() {
 
   REPLY="${severity}|${message}"
   printf '%s' "${REPLY}"
+}
+
+external_runner_run_action() {
+  local action="$1"
+  local script_input="$2"
+  local timeout_seconds="$3"
+  shift 3
+  local rc=0
+
+  if external_runner_run_script "${script_input}" "${timeout_seconds}" "$@"; then
+    rc=0
+  else
+    rc="$?"
+  fi
+
+  external_runner_last_optional_dependency_missing=0
+  if external_runner_is_optional_dependency_missing "${rc}" "${external_runner_last_stderr}" "${external_runner_last_error}"; then
+    external_runner_last_optional_dependency_missing=1
+  fi
+
+  external_runner_present_result "${action}" "${rc}" "${external_runner_last_timed_out}" >/dev/null
+
+  if [[ "${external_runner_last_optional_dependency_missing}" -eq 1 ]]; then
+    return 0
+  fi
+
+  return "${rc}"
 }
