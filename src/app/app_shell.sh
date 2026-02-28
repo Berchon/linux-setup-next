@@ -44,23 +44,10 @@ app_shell_theme_int() {
 }
 
 app_shell_detect_terminal_size() {
-  local width="${COLUMNS:-80}"
-  local height="${LINES:-24}"
+  local width="${COLUMNS:-}"
+  local height="${LINES:-}"
   local detected_width=""
   local detected_height=""
-
-  if declare -F runtime_is_tty >/dev/null && runtime_is_tty && declare -F runtime_has_tput >/dev/null && runtime_has_tput && declare -F runtime_tput_command >/dev/null; then
-    detected_width="$(runtime_tput_command cols 2>/dev/null || printf '')"
-    detected_height="$(runtime_tput_command lines 2>/dev/null || printf '')"
-
-    if app_shell_is_positive_integer "${detected_width}"; then
-      width="${detected_width}"
-    fi
-
-    if app_shell_is_positive_integer "${detected_height}"; then
-      height="${detected_height}"
-    fi
-  fi
 
   if ! app_shell_is_positive_integer "${width}"; then
     width=80
@@ -68,6 +55,21 @@ app_shell_detect_terminal_size() {
 
   if ! app_shell_is_positive_integer "${height}"; then
     height=24
+  fi
+
+  if (! app_shell_is_positive_integer "${COLUMNS:-}") || (! app_shell_is_positive_integer "${LINES:-}"); then
+    if declare -F runtime_is_tty >/dev/null && runtime_is_tty && declare -F runtime_has_tput >/dev/null && runtime_has_tput && declare -F runtime_tput_command >/dev/null; then
+      detected_width="$(runtime_tput_command cols 2>/dev/null || printf '')"
+      detected_height="$(runtime_tput_command lines 2>/dev/null || printf '')"
+
+      if app_shell_is_positive_integer "${detected_width}"; then
+        width="${detected_width}"
+      fi
+
+      if app_shell_is_positive_integer "${detected_height}"; then
+        height="${detected_height}"
+      fi
+    fi
   fi
 
   printf '%s|%s\n' "${width}" "${height}"
@@ -102,6 +104,155 @@ app_shell_sync_viewport() {
   fi
 }
 
+app_shell_back_write_cell() {
+  local x="$1"
+  local y="$2"
+  local char="$3"
+  local fg="$4"
+  local bg="$5"
+  local bold="$6"
+  local idx=0
+
+  idx=$((y * cell_buffer_width + x))
+  cell_back_chars[idx]="${char}"
+  cell_back_fgs[idx]="${fg}"
+  cell_back_bgs[idx]="${bg}"
+  cell_back_bolds[idx]="${bold}"
+}
+
+app_shell_draw_back_box_border() {
+  local x="$1"
+  local y="$2"
+  local width="$3"
+  local height="$4"
+  local fg="$5"
+  local bg="$6"
+  local bold="$7"
+  local title="${8:-}"
+  local right=0
+  local bottom=0
+  local current_x=0
+  local current_y=0
+  local tl="+"
+  local tr="+"
+  local bl="+"
+  local br="+"
+  local h="-"
+  local v="|"
+  local title_text=""
+
+  if ! declare -F cell_buffer_write_text >/dev/null; then
+    return 0
+  fi
+
+  if ! app_shell_is_positive_integer "${width}" || ! app_shell_is_positive_integer "${height}"; then
+    return 0
+  fi
+
+  if declare -F rectangle_border_chars >/dev/null && rectangle_border_chars single; then
+    tl="${rectangle_border_tl}"
+    tr="${rectangle_border_tr}"
+    bl="${rectangle_border_bl}"
+    br="${rectangle_border_br}"
+    h="${rectangle_border_h}"
+    v="${rectangle_border_v}"
+  fi
+
+  right=$((x + width - 1))
+  bottom=$((y + height - 1))
+
+  app_shell_back_write_cell "${x}" "${y}" "${tl}" "${fg}" "${bg}" "${bold}"
+
+  if ((width > 1)); then
+    app_shell_back_write_cell "${right}" "${y}" "${tr}" "${fg}" "${bg}" "${bold}"
+  fi
+  if ((height > 1)); then
+    app_shell_back_write_cell "${x}" "${bottom}" "${bl}" "${fg}" "${bg}" "${bold}"
+  fi
+  if ((width > 1 && height > 1)); then
+    app_shell_back_write_cell "${right}" "${bottom}" "${br}" "${fg}" "${bg}" "${bold}"
+  fi
+
+  if ((width > 2)); then
+    for ((current_x = x + 1; current_x < right; current_x++)); do
+      app_shell_back_write_cell "${current_x}" "${y}" "${h}" "${fg}" "${bg}" "${bold}"
+
+      if ((height > 1)); then
+        app_shell_back_write_cell "${current_x}" "${bottom}" "${h}" "${fg}" "${bg}" "${bold}"
+      fi
+    done
+  fi
+
+  if ((height > 2)); then
+    for ((current_y = y + 1; current_y < bottom; current_y++)); do
+      app_shell_back_write_cell "${x}" "${current_y}" "${v}" "${fg}" "${bg}" "${bold}"
+
+      if ((width > 1)); then
+        app_shell_back_write_cell "${right}" "${current_y}" "${v}" "${fg}" "${bg}" "${bold}"
+      fi
+    done
+  fi
+
+  if [[ -n "${title}" ]] && ((width > 4)); then
+    title_text=" ${title} "
+    title_text="${title_text:0:$((width - 2))}"
+    cell_buffer_write_text back "$((x + 1))" "${y}" "${title_text}" "${fg}" "${bg}" "${bold}"
+  fi
+}
+
+app_shell_fill_back_row() {
+  local y="$1"
+  local width="$2"
+  local fg="$3"
+  local bg="$4"
+  local bold="$5"
+  local start_idx=0
+  local idx=0
+
+  start_idx=$((y * cell_buffer_width))
+  for ((idx = start_idx; idx < start_idx + width; idx++)); do
+    cell_back_chars[idx]=' '
+    cell_back_fgs[idx]="${fg}"
+    cell_back_bgs[idx]="${bg}"
+    cell_back_bolds[idx]="${bold}"
+  done
+}
+
+app_shell_mark_base_layout_dirty_regions() {
+  local wallpaper_full_fill="$1"
+  local width="$2"
+  local height="$3"
+  local center_y=1
+  local center_height=0
+  local center_bottom=0
+
+  if [[ "${wallpaper_full_fill}" == "1" ]]; then
+    dirty_regions_add 0 0 "${width}" "${height}"
+    return 0
+  fi
+
+  dirty_regions_add 0 0 "${width}" 1
+
+  if ((height > 1)); then
+    dirty_regions_add 0 "$((height - 1))" "${width}" 1
+  fi
+
+  if ((height > 2)); then
+    center_height=$((height - 2))
+    center_bottom=$((center_y + center_height - 1))
+
+    dirty_regions_add 0 "${center_y}" "${width}" 1
+    dirty_regions_add 0 "${center_bottom}" "${width}" 1
+
+    if ((center_height > 2)); then
+      dirty_regions_add 0 "$((center_y + 1))" 1 "$((center_height - 2))"
+      if ((width > 1)); then
+        dirty_regions_add "$((width - 1))" "$((center_y + 1))" 1 "$((center_height - 2))"
+      fi
+    fi
+  fi
+}
+
 app_shell_render_base_layout() {
   local wallpaper_enabled=0
   local wallpaper_fg=7
@@ -114,8 +265,10 @@ app_shell_render_base_layout() {
   local center_height=0
   local header_text=" linux-setup-next "
   local footer_text=""
+  local wallpaper_requires_full_fill=0
+  local y=0
 
-  if ! declare -F cell_buffer_clear_rect >/dev/null || ! declare -F rectangle_render >/dev/null || ! declare -F cell_buffer_write_text >/dev/null || ! declare -F diff_renderer_render_dirty >/dev/null || ! declare -F dirty_regions_add >/dev/null; then
+  if ! declare -F cell_buffer_write_text >/dev/null || ! declare -F diff_renderer_render_dirty >/dev/null || ! declare -F dirty_regions_add >/dev/null; then
     return 0
   fi
 
@@ -127,28 +280,37 @@ app_shell_render_base_layout() {
   footer_fg="$(app_shell_theme_int "theme.footer.fg" "15")"
   footer_bg="$(app_shell_theme_int "theme.footer.bg" "0")"
 
-  cell_buffer_clear_rect back 0 0 "${app_shell_screen_width}" "${app_shell_screen_height}"
-
   if [[ "${wallpaper_enabled}" == "1" ]]; then
-    rectangle_render back 0 0 "${app_shell_screen_width}" "${app_shell_screen_height}" " " "${wallpaper_fg}" "${wallpaper_bg}" 0 none ""
+    if [[ "${wallpaper_fg}" != "7" ]] || [[ "${wallpaper_bg}" != "0" ]]; then
+      wallpaper_requires_full_fill=1
+    fi
   fi
 
-  rectangle_render back 0 0 "${app_shell_screen_width}" 1 " " "${header_fg}" "${header_bg}" 1 none ""
+  if [[ "${wallpaper_requires_full_fill}" == "1" ]]; then
+    for ((y = 0; y < app_shell_screen_height; y++)); do
+      app_shell_fill_back_row "${y}" "${app_shell_screen_width}" "${wallpaper_fg}" "${wallpaper_bg}" 0
+    done
+  fi
+
+  app_shell_fill_back_row 0 "${app_shell_screen_width}" "${header_fg}" "${header_bg}" 1
   cell_buffer_write_text back 0 0 "${header_text:0:${app_shell_screen_width}}" "${header_fg}" "${header_bg}" 1
 
-  if ((app_shell_screen_height > 2)) && declare -F panel_render >/dev/null; then
+  if ((app_shell_screen_height > 2)); then
     center_height=$((app_shell_screen_height - 2))
-    panel_render back 0 "${center_y}" "${app_shell_screen_width}" "${center_height}" " " "${header_fg}" "${wallpaper_bg}" 0 single "Main" 0
+    app_shell_draw_back_box_border 0 "${center_y}" "${app_shell_screen_width}" "${center_height}" "${header_fg}" "${wallpaper_bg}" 0 "Main"
   fi
 
   if ((app_shell_screen_height > 1)); then
-    rectangle_render back 0 "$((app_shell_screen_height - 1))" "${app_shell_screen_width}" 1 " " "${footer_fg}" "${footer_bg}" 0 none ""
+    app_shell_fill_back_row "$((app_shell_screen_height - 1))" "${app_shell_screen_width}" "${footer_fg}" "${footer_bg}" 0
     footer_text=" ${app_shell_message_bar_text}"
     cell_buffer_write_text back 0 "$((app_shell_screen_height - 1))" "${footer_text:0:${app_shell_screen_width}}" "${footer_fg}" "${footer_bg}" 0
   fi
 
-  dirty_regions_add 0 0 "${app_shell_screen_width}" "${app_shell_screen_height}"
-  diff_renderer_render_dirty
+  app_shell_mark_base_layout_dirty_regions \
+    "${wallpaper_requires_full_fill}" \
+    "${app_shell_screen_width}" \
+    "${app_shell_screen_height}"
+  diff_renderer_render_dirty 1
 }
 
 app_shell_read_key() {
