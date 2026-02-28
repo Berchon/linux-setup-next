@@ -94,3 +94,6 @@ Exemplos:
 - Resolve caminho de scripts externos com diretório permitido e bloqueio de path traversal para execução segura (E7/H7.1/T7.1.1). [PR #21] [commit 609acb2]
 - Executa scripts externos com timeout obrigatório e sinalização explícita de expiração para evitar bloqueio de fluxo (E7/H7.1/T7.1.2). [PR #21] [commit 7d1d956]
 - Captura `stdout/stderr` de scripts externos e sanitiza saída para consumo seguro na UI (E7/H7.1/T7.1.3). [PR #21] [commit 87fca65]
+- Mapeia `exit code` de ações externas para severidade (`success|info|warn|error`) considerando contexto da ação e timeout (E7/H7.2/T7.2.1). [PR #22] [commit 3388105]
+- Exibe resultado da execução externa em `modal` para `install/remove` e em `toast` para `status`, com fallback seguro quando overlay não estiver carregado (E7/H7.2/T7.2.2). [PR #22] [commit ca426d9]
+- Trata ausência de dependência opcional em ações externas com degradação para `warn` e retorno não fatal no fluxo de execução (E7/H7.2/T7.2.3). [PR #22] [commit d93bed5]
