@@ -13,6 +13,9 @@ Alcançar paridade funcional com a versão atual de referência, com arquitetura
 - `docs/PADROES_DE_ENGENHARIA.md`
 - `docs/MATRIZ_DE_RASTREABILIDADE.md`
 - `docs/PLANEJAMENTO_DE_ENTREGA.md`
+- `docs/GUIA_DE_OPERACAO.md`
+- `docs/TROUBLESHOOTING.md`
+- `docs/REVISAO_TECNICA_V1.md`
 - `CHANGELOG.md`
 
 ## Estado
