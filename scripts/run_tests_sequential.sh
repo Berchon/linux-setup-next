@@ -15,6 +15,16 @@ declare -a discovered_tests=()
 declare -a selected_tests=()
 declare -a failed_tests=()
 
+if [[ -t 1 ]]; then
+  readonly COLOR_GREEN=$'\033[32m'
+  readonly COLOR_RED=$'\033[31m'
+  readonly COLOR_RESET=$'\033[0m'
+else
+  readonly COLOR_GREEN=""
+  readonly COLOR_RED=""
+  readonly COLOR_RESET=""
+fi
+
 usage() {
   cat <<'USAGE'
 Usage: scripts/run_tests_sequential.sh [options]
@@ -172,7 +182,7 @@ run_all_tests() {
       end_time="$(date +%s)"
       duration_seconds=$((end_time - start_time))
       completed_percent="$(percentage "${current}" "${total}")"
-      printf '[OK ] [%d/%d] %s (%ss) | %s%% done | remaining: %d\n' "${current}" "${total}" "${test_rel_path}" "${duration_seconds}" "${completed_percent}" "${remaining}"
+      printf '%s[OK ]%s [%d/%d] %s (%ss) | %s%% done | remaining: %d\n' "${COLOR_GREEN}" "${COLOR_RESET}" "${current}" "${total}" "${test_rel_path}" "${duration_seconds}" "${completed_percent}" "${remaining}"
 
       if ((verbose == 1)); then
         sed 's/^/      /' "${output_file}"
@@ -182,7 +192,7 @@ run_all_tests() {
       end_time="$(date +%s)"
       duration_seconds=$((end_time - start_time))
       completed_percent="$(percentage "${current}" "${total}")"
-      printf '[X  ] [%d/%d] %s (%ss) | %s%% done | remaining: %d\n' "${current}" "${total}" "${test_rel_path}" "${duration_seconds}" "${completed_percent}" "${remaining}"
+      printf '%s[FAIL]%s [%d/%d] %s (%ss) | %s%% done | remaining: %d\n' "${COLOR_RED}" "${COLOR_RESET}" "${current}" "${total}" "${test_rel_path}" "${duration_seconds}" "${completed_percent}" "${remaining}"
       failed_tests+=("${test_rel_path}")
       sed 's/^/      /' "${output_file}"
 
