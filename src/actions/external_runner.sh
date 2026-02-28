@@ -7,6 +7,7 @@ declare -g external_runner_allowed_dir="${EXTERNAL_RUNNER_DEFAULT_ALLOWED_DIR}"
 declare -g external_runner_last_error=""
 declare -g external_runner_last_rc=0
 declare -g external_runner_last_timed_out=0
+declare -g external_runner_last_severity="info"
 declare -g external_runner_last_stdout=""
 declare -g external_runner_last_stderr=""
 
@@ -43,6 +44,7 @@ external_runner_reset() {
   external_runner_last_error=""
   external_runner_last_rc=0
   external_runner_last_timed_out=0
+  external_runner_last_severity="info"
   external_runner_last_stdout=""
   external_runner_last_stderr=""
   external_runner_allowed_dir="${EXTERNAL_RUNNER_DEFAULT_ALLOWED_DIR}"
@@ -120,6 +122,7 @@ external_runner_execute_with_timeout() {
   external_runner_last_error=""
   external_runner_last_rc=0
   external_runner_last_timed_out=0
+  external_runner_last_severity="info"
 
   resolved_script="$(external_runner_resolve_script_path "${script_input}")" || return 1
 
@@ -199,4 +202,31 @@ external_runner_run_script() {
   external_runner_last_stderr="$(external_runner_sanitize_output "${stderr_raw}")"
 
   return "${rc}"
+}
+
+external_runner_map_exit_code_to_severity() {
+  local action="$1"
+  local rc="$2"
+  local timed_out="${3:-0}"
+  local severity="error"
+
+  if [[ "${timed_out}" == "1" || "${rc}" -eq 124 ]]; then
+    severity="error"
+  elif [[ "${action}" == "status" ]]; then
+    case "${rc}" in
+      0) severity="info" ;;
+      1|127) severity="warn" ;;
+      *) severity="error" ;;
+    esac
+  else
+    case "${rc}" in
+      0) severity="success" ;;
+      127) severity="warn" ;;
+      *) severity="error" ;;
+    esac
+  fi
+
+  external_runner_last_severity="${severity}"
+  REPLY="${severity}"
+  printf '%s' "${severity}"
 }
