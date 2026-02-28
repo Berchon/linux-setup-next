@@ -163,7 +163,8 @@ external_runner_sanitize_output() {
   esc_char="$(printf '\033')"
 
   printf '%s' "${raw_text}" \
-    | sed -E "s/${esc_char}\\[[0-9;?]*[ -/]*[@-~]//g" \
+    | sed "s/${esc_char}\\[[0-9;]*m//g" \
+    | sed "s/${esc_char}\\[[0-9;?]*[ -\/]*[@-~]//g" \
     | tr '\r' '\n' \
     | tr -d '\000-\010\013\014\016-\037\177'
 }
