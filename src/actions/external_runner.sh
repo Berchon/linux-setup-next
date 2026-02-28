@@ -124,6 +124,11 @@ external_runner_init_reference_actions() {
     "keyboards/k380/install.sh" \
     "keyboards/k380/remove.sh" \
     "keyboards/k380/status.sh"
+  external_runner_register_reference_device \
+    "k270" \
+    "keyboards/k270/install.sh" \
+    "keyboards/k270/remove.sh" \
+    "keyboards/k270/status.sh"
 }
 
 external_runner_init_reference_actions
