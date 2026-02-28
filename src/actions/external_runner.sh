@@ -7,6 +7,8 @@ declare -g external_runner_allowed_dir="${EXTERNAL_RUNNER_DEFAULT_ALLOWED_DIR}"
 declare -g external_runner_last_error=""
 declare -g external_runner_last_rc=0
 declare -g external_runner_last_timed_out=0
+declare -g external_runner_last_severity="info"
+declare -g external_runner_last_optional_dependency_missing=0
 declare -g external_runner_last_stdout=""
 declare -g external_runner_last_stderr=""
 
@@ -43,6 +45,8 @@ external_runner_reset() {
   external_runner_last_error=""
   external_runner_last_rc=0
   external_runner_last_timed_out=0
+  external_runner_last_severity="info"
+  external_runner_last_optional_dependency_missing=0
   external_runner_last_stdout=""
   external_runner_last_stderr=""
   external_runner_allowed_dir="${EXTERNAL_RUNNER_DEFAULT_ALLOWED_DIR}"
@@ -120,6 +124,8 @@ external_runner_execute_with_timeout() {
   external_runner_last_error=""
   external_runner_last_rc=0
   external_runner_last_timed_out=0
+  external_runner_last_severity="info"
+  external_runner_last_optional_dependency_missing=0
 
   resolved_script="$(external_runner_resolve_script_path "${script_input}")" || return 1
 
@@ -197,6 +203,141 @@ external_runner_run_script() {
 
   external_runner_last_stdout="$(external_runner_sanitize_output "${stdout_raw}")"
   external_runner_last_stderr="$(external_runner_sanitize_output "${stderr_raw}")"
+
+  return "${rc}"
+}
+
+external_runner_map_exit_code_to_severity() {
+  local action="$1"
+  local rc="$2"
+  local timed_out="${3:-0}"
+  local severity="error"
+
+  if [[ "${timed_out}" == "1" || "${rc}" -eq 124 ]]; then
+    severity="error"
+  elif external_runner_is_optional_dependency_missing "${rc}" "${external_runner_last_stderr}" "${external_runner_last_error}"; then
+    severity="warn"
+  elif [[ "${action}" == "status" ]]; then
+    case "${rc}" in
+      0) severity="info" ;;
+      1|127) severity="warn" ;;
+      *) severity="error" ;;
+    esac
+  else
+    case "${rc}" in
+      0) severity="success" ;;
+      127) severity="warn" ;;
+      *) severity="error" ;;
+    esac
+  fi
+
+  external_runner_last_severity="${severity}"
+  REPLY="${severity}"
+  printf '%s' "${severity}"
+}
+
+external_runner_is_optional_dependency_missing() {
+  local rc="$1"
+  local stderr_text="${2:-}"
+  local error_text="${3:-}"
+  local combined_text=""
+
+  if [[ "${rc}" -eq 127 ]]; then
+    return 0
+  fi
+
+  combined_text="${stderr_text}"$'\n'"${error_text}"
+  combined_text="${combined_text,,}"
+
+  if [[ "${combined_text}" == *"command not found"* ]]; then
+    return 0
+  fi
+
+  if [[ "${combined_text}" == *"dependency not available"* ]]; then
+    return 0
+  fi
+
+  return 1
+}
+
+external_runner_build_result_message() {
+  local action="$1"
+  local rc="$2"
+  local detail=""
+
+  if [[ -n "${external_runner_last_error}" ]]; then
+    detail="${external_runner_last_error}"
+  elif [[ -n "${external_runner_last_stderr}" ]]; then
+    detail="${external_runner_last_stderr%%$'\n'*}"
+  elif [[ -n "${external_runner_last_stdout}" ]]; then
+    detail="${external_runner_last_stdout%%$'\n'*}"
+  else
+    detail="exit code ${rc}"
+  fi
+
+  printf '%s: %s' "${action}" "${detail}"
+}
+
+external_runner_present_result() {
+  local action="$1"
+  local rc="${2:-${external_runner_last_rc}}"
+  local timed_out="${3:-${external_runner_last_timed_out}}"
+  local severity=""
+  local title=""
+  local message=""
+
+  external_runner_map_exit_code_to_severity "${action}" "${rc}" "${timed_out}" >/dev/null
+  severity="${REPLY}"
+  message="$(external_runner_build_result_message "${action}" "${rc}")"
+  title="External action: ${action} (${severity})"
+
+  case "${action}" in
+    status)
+      if declare -F toast_state_enqueue >/dev/null; then
+        toast_state_enqueue "${severity}" "${message}"
+      fi
+      ;;
+    install|remove)
+      if declare -F modal_state_open_text >/dev/null; then
+        modal_state_open_text "${title}" "${message}"
+      elif declare -F toast_state_enqueue >/dev/null; then
+        toast_state_enqueue "${severity}" "${message}"
+      fi
+      ;;
+    *)
+      if declare -F toast_state_enqueue >/dev/null; then
+        toast_state_enqueue "${severity}" "${message}"
+      fi
+      ;;
+  esac
+
+  REPLY="${severity}|${message}"
+  printf '%s' "${REPLY}"
+}
+
+external_runner_run_action() {
+  local action="$1"
+  local script_input="$2"
+  local timeout_seconds="$3"
+  shift 3
+  local rc=0
+
+  if external_runner_run_script "${script_input}" "${timeout_seconds}" "$@"; then
+    rc=0
+  else
+    rc="$?"
+  fi
+
+  external_runner_last_optional_dependency_missing=0
+  if external_runner_is_optional_dependency_missing "${rc}" "${external_runner_last_stderr}" "${external_runner_last_error}"; then
+    external_runner_last_optional_dependency_missing=1
+  fi
+
+  external_runner_present_result "${action}" "${rc}" "${external_runner_last_timed_out}" >/dev/null
+
+  if [[ "${external_runner_last_optional_dependency_missing}" -eq 1 ]]; then
+    return 0
+  fi
 
   return "${rc}"
 }
