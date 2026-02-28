@@ -106,4 +106,4 @@ Exemplos:
 - Conclui revisão técnica documental final da V1 com auditoria dedicada e alinhamento das evidências de teste da H8.1 (E8/H8.2/T8.2.1). [PR #25] [commit 889ad33]
 - Publica guias operacionais de execução e troubleshooting para rotina de validação e suporte local (E8/H8.2/T8.2.2). [PR #25] [commit 65bf02b]
 - Prepara backlog pós-V1 com épicos iniciais de observabilidade, expansão de ações externas e governança de release (E8/H8.2/T8.2.3). [PR #25] [commit f4aef89]
-- Reprioriza o pós-V1 para paridade funcional com `linux-setup-legacy/menu.sh`, definindo o épico único de release `v1.0.0` com histórias verticais de app real (E9/H9.1-H9.7). [PR #25] [commit <pending>]
+- Reprioriza o pós-V1 para paridade funcional com `linux-setup-legacy/menu.sh`, definindo o épico único de release `v1.0.0` com histórias verticais de app real (E9/H9.1-H9.7). [PR #25] [commit 4f06127]
