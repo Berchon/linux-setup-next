@@ -110,3 +110,5 @@ Exemplos:
 - Integra o loop principal de runtime ao entrypoint da aplicação com app shell dedicado e tratamento de input para encerramento por `Q` (E9/H9.1/T9.1.1). [PR #26] [commit 6554dbf]
 - Renderiza layout base do app shell em runtime real com `background`, `header`, área central e `footer`, usando pipeline incremental (`dirty regions + diff renderer`) (E9/H9.1/T9.1.2). [PR #26] [commit 748a71b]
 - Inicializa barra de mensagem operacional no shell e reforça cleanup idempotente no fluxo completo de execução/encerramento (E9/H9.1/T9.1.3). [PR #26] [commit d502c2d]
+- Refatora helpers de render do app shell para reduzir duplicação e manter o caminho de `back buffer` explícito no runtime (E9/H9.1). [PR #26] [commit b3e6c0f]
+- Refatora hot paths de `cell_buffer` e `diff_renderer` para reduzir overhead de render inicial e manter startup na faixa de baixa latência em terminal real (E9/H9.1). [PR #26] [commit 8b7763b]
