@@ -11,6 +11,7 @@ declare -g external_runner_last_severity="info"
 declare -g external_runner_last_optional_dependency_missing=0
 declare -g external_runner_last_stdout=""
 declare -g external_runner_last_stderr=""
+declare -gA external_runner_reference_scripts=()
 
 external_runner__canonicalize_dir() {
   local dir_path="$1"
@@ -51,6 +52,86 @@ external_runner_reset() {
   external_runner_last_stderr=""
   external_runner_allowed_dir="${EXTERNAL_RUNNER_DEFAULT_ALLOWED_DIR}"
 }
+
+external_runner_register_reference_device() {
+  local device="$1"
+  local install_script="$2"
+  local remove_script="$3"
+  local status_script="$4"
+  local normalized_device=""
+
+  normalized_device="${device,,}"
+  if [[ ! "${normalized_device}" =~ ^[a-z0-9_-]+$ ]]; then
+    external_runner_last_error="external_runner: invalid reference device '${device}'"
+    return 1
+  fi
+
+  if [[ -z "${install_script}" || -z "${remove_script}" || -z "${status_script}" ]]; then
+    external_runner_last_error="external_runner: incomplete script mapping for '${normalized_device}'"
+    return 1
+  fi
+
+  external_runner_reference_scripts["${normalized_device}.install"]="${install_script}"
+  external_runner_reference_scripts["${normalized_device}.remove"]="${remove_script}"
+  external_runner_reference_scripts["${normalized_device}.status"]="${status_script}"
+}
+
+external_runner_resolve_reference_script() {
+  local device="$1"
+  local action="$2"
+  local normalized_device=""
+  local normalized_action=""
+  local map_key=""
+  local script_relpath=""
+
+  normalized_device="${device,,}"
+  normalized_action="${action,,}"
+  map_key="${normalized_device}.${normalized_action}"
+
+  case "${normalized_action}" in
+    install|remove|status)
+      ;;
+    *)
+      external_runner_last_error="external_runner: unsupported action '${action}'"
+      return 1
+      ;;
+  esac
+
+  script_relpath="${external_runner_reference_scripts[${map_key}]:-}"
+  if [[ -z "${script_relpath}" ]]; then
+    external_runner_last_error="external_runner: unsupported reference device '${device}'"
+    return 1
+  fi
+
+  printf '%s' "${script_relpath}"
+}
+
+external_runner_run_reference_action() {
+  local device="$1"
+  local action="$2"
+  local timeout_seconds="$3"
+  shift 3
+  local script_relpath=""
+
+  script_relpath="$(external_runner_resolve_reference_script "${device}" "${action}")" || return 1
+  external_runner_run_action "${action}" "${script_relpath}" "${timeout_seconds}" "$@"
+}
+
+external_runner_init_reference_actions() {
+  external_runner_reference_scripts=()
+  external_runner_register_reference_device \
+    "k380" \
+    "keyboards/k380/install.sh" \
+    "keyboards/k380/remove.sh" \
+    "keyboards/k380/status.sh"
+  external_runner_register_reference_device \
+    "k270" \
+    "keyboards/k270/install.sh" \
+    "keyboards/k270/remove.sh" \
+    "keyboards/k270/status.sh"
+}
+
+external_runner_init_reference_actions
 
 external_runner_set_allowed_dir() {
   local dir_path="$1"

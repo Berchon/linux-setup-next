@@ -97,3 +97,6 @@ Exemplos:
 - Mapeia `exit code` de ações externas para severidade (`success|info|warn|error`) considerando contexto da ação e timeout (E7/H7.2/T7.2.1). [PR #22] [commit 3388105]
 - Exibe resultado da execução externa em `modal` para `install/remove` e em `toast` para `status`, com fallback seguro quando overlay não estiver carregado (E7/H7.2/T7.2.2). [PR #22] [commit ca426d9]
 - Trata ausência de dependência opcional em ações externas com degradação para `warn` e retorno não fatal no fluxo de execução (E7/H7.2/T7.2.3). [PR #22] [commit d93bed5]
+- Integra ações de referência do teclado `K380` no runner externo com resolução por dispositivo/ação e execução dedicada (E7/H7.3/T7.3.1). [PR #23] [commit a9f98cf]
+- Integra ações de referência do teclado `K270` no runner externo mantendo o mesmo contrato de execução (E7/H7.3/T7.3.2). [PR #23] [commit 4826634]
+- Preserva validações de fluxo nas ações de referência (`instalado`, `remoção` e `confirmação`) para `K380`/`K270` com scripts e regressão automatizada (E7/H7.3/T7.3.3). [PR #23] [commit ce57d3b]
