@@ -20,7 +20,13 @@ main() {
   runtime_init
 
   printf 'linux-setup-next: bootstrap ready\n'
-  app_shell_run
+
+  if ! app_shell_run; then
+    runtime_cleanup
+    return 1
+  fi
+
+  runtime_cleanup
 }
 
 main "$@"

@@ -204,9 +204,13 @@ app_shell_set_message_bar() {
   app_shell_message_bar_text="$1"
 }
 
+app_shell_default_message_bar() {
+  printf 'Ready - press Q to exit.\n'
+}
+
 app_shell_run() {
   app_shell_running=1
-  app_shell_set_message_bar ""
+  app_shell_set_message_bar "$(app_shell_default_message_bar)"
 
   app_shell_sync_viewport 1 || return 1
   app_shell_render_base_layout || return 1
