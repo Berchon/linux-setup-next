@@ -16,6 +16,12 @@ readonly -a DEFAULT_MODULE_ORDER=(
   "state/config_menu_state.sh"
   "state/ui_state.sh"
   "core/runtime.sh"
+  "render/cell_buffer.sh"
+  "render/dirty_regions.sh"
+  "render/diff_renderer.sh"
+  "components/rectangle.sh"
+  "components/shadow.sh"
+  "components/panel.sh"
   "components/menu.sh"
   "app/app_shell.sh"
 )
