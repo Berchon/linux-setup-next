@@ -16,6 +16,8 @@ readonly -a DEFAULT_MODULE_ORDER=(
   "state/config_menu_state.sh"
   "state/ui_state.sh"
   "core/runtime.sh"
+  "components/menu.sh"
+  "app/app_shell.sh"
 )
 
 bootstrap_load_modules_from_list() {

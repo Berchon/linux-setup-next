@@ -18,7 +18,9 @@ main() {
 
   runtime_install_signal_traps
   runtime_init
+
   printf 'linux-setup-next: bootstrap ready\n'
+  app_shell_run
 }
 
 main "$@"
