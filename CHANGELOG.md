@@ -103,3 +103,6 @@ Exemplos:
 - Adiciona cobertura final da suíte nos níveis `integration`, `e2e` e `perf`, com execução completa pelo runner oficial (E8/H8.1/T8.1.1). [PR #24] [commit d7501aa]
 - Fecha regressões de contrato das ações de referência com validações negativas e de normalização no runner externo (E8/H8.1/T8.1.2). [PR #24] [commit 44f383b]
 - Consolida matriz de compatibilidade e evidências da história H8.1 em documentação técnica dedicada (E8/H8.1/T8.1.3). [PR #24] [commit 79f90e4]
+- Conclui revisão técnica documental final da V1 com auditoria dedicada e alinhamento das evidências de teste da H8.1 (E8/H8.2/T8.2.1). [PR #25] [commit 889ad33]
+- Publica guias operacionais de execução e troubleshooting para rotina de validação e suporte local (E8/H8.2/T8.2.2). [PR #25] [commit 65bf02b]
+- Prepara backlog pós-V1 com épicos iniciais de observabilidade, expansão de ações externas e governança de release (E8/H8.2/T8.2.3). [PR #25] [commit f4aef89]
