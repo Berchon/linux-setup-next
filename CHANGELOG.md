@@ -100,3 +100,6 @@ Exemplos:
 - Integra ações de referência do teclado `K380` no runner externo com resolução por dispositivo/ação e execução dedicada (E7/H7.3/T7.3.1). [PR #23] [commit a9f98cf]
 - Integra ações de referência do teclado `K270` no runner externo mantendo o mesmo contrato de execução (E7/H7.3/T7.3.2). [PR #23] [commit 4826634]
 - Preserva validações de fluxo nas ações de referência (`instalado`, `remoção` e `confirmação`) para `K380`/`K270` com scripts e regressão automatizada (E7/H7.3/T7.3.3). [PR #23] [commit ce57d3b]
+- Adiciona cobertura final da suíte nos níveis `integration`, `e2e` e `perf`, com execução completa pelo runner oficial (E8/H8.1/T8.1.1). [PR #24] [commit d7501aa]
+- Fecha regressões de contrato das ações de referência com validações negativas e de normalização no runner externo (E8/H8.1/T8.1.2). [PR #24] [commit 44f383b]
+- Consolida matriz de compatibilidade e evidências da história H8.1 em documentação técnica dedicada (E8/H8.1/T8.1.3). [PR #24] [commit 79f90e4]
