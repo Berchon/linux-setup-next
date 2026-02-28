@@ -42,7 +42,8 @@ count_occurrences() {
   }'
 }
 
-output="$(${MAIN_SCRIPT} 2>&1)"
+# Force non-interactive mode so the runtime loop does not wait for keyboard input in TTY sessions.
+output="$(${MAIN_SCRIPT} </dev/null 2>&1)"
 
 assert_contains "${output}" "linux-setup-next: bootstrap ready" "main bootstrap output should be printed"
 assert_contains "${output}" "Ready - press Q to exit." "app shell should render initial message bar"
