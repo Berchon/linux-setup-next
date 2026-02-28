@@ -16,6 +16,7 @@
 7. E6 - i18n
 8. E7 - Integração com scripts externos
 9. E8 - Hardening e validação final da V1
+10. E9 - Paridade funcional com legacy para release v1.0.0
 
 ## 3. Épicos detalhados
 
@@ -211,6 +212,7 @@ Critério de saída E8:
 - `E6` depende de `E5` (idioma em configuração) e `E3`.
 - `E7` depende de `E3` e `E4`.
 - `E8` depende de `E0` a `E7`.
+- `E9` depende de `E0` a `E8`.
 
 ## 5. Definição de pronto por história
 1. Código implementado e revisado.
@@ -220,56 +222,58 @@ Critério de saída E8:
 5. `CHANGELOG.md` atualizado com a mudança da história.
 6. Aprovado por você antes de avançar.
 
-## 6. Backlog pós-V1 (preparação inicial)
-Objetivo: registrar direção técnica imediata após fechamento da V1, sem quebrar a baseline validada.
+## 6. Backlog pós-V1 (paridade para release v1.0.0)
+Objetivo: lançar `v1.0.0` quando o `linux-setup-next` rodar como o `linux-setup-legacy/menu.sh`, preservando todas as funcionalidades essenciais.
 
-Regra de ativação:
-1. Itens desta seção só entram em execução após aceite formal de `E8/H8.2`.
+Princípios:
+1. Priorizar entrega da aplicação funcional antes de novas features.
+2. Manter implementação em camadas modulares do `next`, usando o `legacy` como referência de comportamento.
+3. Fechar cada história com evidência automatizada e checklist de paridade manual.
 
-## E9 - Observabilidade e operação contínua
-Objetivo: ampliar capacidade de diagnóstico em runtime e facilitar suporte.
+Definição de paridade funcional (`legacy -> next`):
+1. Fluxos principais de navegação e submenus equivalentes.
+2. Ações externas (`install/remove/status`) funcionando no fluxo real de UI.
+3. Modal, toast, barra de mensagem e i18n operando em runtime.
+4. Terminal restaurado corretamente em saída normal e por sinal.
+5. Suíte oficial sem falhas e checklist de paridade aprovado.
 
-### H9.1 - Telemetria local de runtime
-- T9.1.1 Expor métricas de frame (`tempo`, `células alteradas`, `bytes ANSI`) em modo debug.
-- T9.1.2 Adicionar snapshot opcional de estado para troubleshooting.
-- T9.1.3 Definir formato estável de log técnico para análise local.
+## E9 - Paridade funcional com linux-setup-legacy (release v1.0.0)
+Objetivo: entregar a aplicação rodando fim a fim com comportamento equivalente ao `legacy`, pronta para tag `v1.0.0`.
 
-### H9.2 - Auditoria de erros operacionais
-- T9.2.1 Consolidar catálogo de erros de ações externas.
-- T9.2.2 Padronizar mensagens técnicas e de usuário para falhas recorrentes.
-- T9.2.3 Cobrir cenários de erro crítico com testes de regressão.
+### H9.1 - App shell em runtime real
+- T9.1.1 Integrar loop principal de runtime no entrypoint da aplicação.
+- T9.1.2 Renderizar layout base (background, header, footer e área central).
+- T9.1.3 Garantir barra de mensagem inicial e cleanup terminal idempotente no fluxo completo.
+
+### H9.2 - Menu principal e submenus em tela real
+- T9.2.1 Conectar modelo de menu ao render da tela principal.
+- T9.2.2 Implementar navegação completa (`up/down/enter/back/quit`) no app rodando.
+- T9.2.3 Validar caminhos de submenu equivalentes aos fluxos do `legacy`.
+
+### H9.3 - Fluxos de ações externas fim a fim
+- T9.3.1 Ligar itens de menu ao `action_router` e ao `external_runner`.
+- T9.3.2 Exibir retorno de `install/remove/status` no contexto correto da UI.
+- T9.3.3 Garantir mapeamento de severidade e timeout no fluxo real.
+
+### H9.4 - Modal e confirmação no fluxo real
+- T9.4.1 Exibir modal de status após ações que exigem detalhe de retorno.
+- T9.4.2 Exibir modal de confirmação em ações destrutivas/sensíveis.
+- T9.4.3 Garantir bloqueio de fundo e foco correto enquanto modal está ativo.
+
+### H9.5 - Toast e barra de mensagem operacional
+- T9.5.1 Exibir toast para feedback curto de sucesso/erro/aviso.
+- T9.5.2 Integrar barra de mensagem com estado contextual da tela ativa.
+- T9.5.3 Garantir convivência visual de menu/modal/toast/barra sem artefatos.
+
+### H9.6 - i18n em runtime com persistência
+- T9.6.1 Disponibilizar troca de idioma PT/EN durante execução.
+- T9.6.2 Atualizar textos renderizados após mudança de idioma.
+- T9.6.3 Persistir idioma selecionado e validar comportamento pós-restart.
+
+### H9.7 - Hardening de paridade e release candidate
+- T9.7.1 Consolidar checklist `legacy vs next` com cobertura dos fluxos principais.
+- T9.7.2 Corrigir lacunas de paridade identificadas na validação final.
+- T9.7.3 Preparar pacote de release (`CHANGELOG`, validações finais e prontidão para tag `v1.0.0`).
 
 Critério de saída E9:
-- Diagnóstico de incidentes reproduzível com evidência de logs e testes.
-
-## E10 - Expansão controlada de ações externas
-Objetivo: crescer o catálogo de integrações sem quebrar contrato do runner.
-
-### H10.1 - Novo dispositivo de referência
-- T10.1.1 Definir contrato de scripts para novo device.
-- T10.1.2 Integrar ações `install/remove/status` no runner.
-- T10.1.3 Adicionar suíte de regressão dedicada do novo device.
-
-### H10.2 - Hardening de segurança do runner
-- T10.2.1 Reforçar validações de input em parâmetros opcionais.
-- T10.2.2 Revisar política de allowlist de diretórios.
-- T10.2.3 Executar revisão de quoting/escaping em fluxos críticos.
-
-Critério de saída E10:
-- Novo device operando com cobertura automatizada e sem regressão nos devices existentes.
-
-## E11 - Release e manutenção de longo prazo
-Objetivo: preparar ciclo de release estável pós-V1.
-
-### H11.1 - Estratégia de versionamento ativo
-- T11.1.1 Definir cadência de release (`minor`/`patch`) e política de backport.
-- T11.1.2 Formalizar checklist de release com promoção de `Unreleased`.
-- T11.1.3 Publicar baseline de compatibilidade suportada por versão.
-
-### H11.2 - Governança de qualidade contínua
-- T11.2.1 Definir rotina de revisão técnica trimestral de documentação.
-- T11.2.2 Definir rotina de execução de suíte por marcos de manutenção.
-- T11.2.3 Registrar critérios para depreciação controlada de comportamento.
-
-Critério de saída E11:
-- Processo de release/manutenção definido e operacionalizado em documentação.
+- `linux-setup-next` funcionalmente equivalente ao `legacy` nos fluxos essenciais, com suíte oficial passando e pronto para release `v1.0.0`.
