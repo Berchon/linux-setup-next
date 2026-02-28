@@ -219,3 +219,57 @@ Critério de saída E8:
 4. Documentação atualizada.
 5. `CHANGELOG.md` atualizado com a mudança da história.
 6. Aprovado por você antes de avançar.
+
+## 6. Backlog pós-V1 (preparação inicial)
+Objetivo: registrar direção técnica imediata após fechamento da V1, sem quebrar a baseline validada.
+
+Regra de ativação:
+1. Itens desta seção só entram em execução após aceite formal de `E8/H8.2`.
+
+## E9 - Observabilidade e operação contínua
+Objetivo: ampliar capacidade de diagnóstico em runtime e facilitar suporte.
+
+### H9.1 - Telemetria local de runtime
+- T9.1.1 Expor métricas de frame (`tempo`, `células alteradas`, `bytes ANSI`) em modo debug.
+- T9.1.2 Adicionar snapshot opcional de estado para troubleshooting.
+- T9.1.3 Definir formato estável de log técnico para análise local.
+
+### H9.2 - Auditoria de erros operacionais
+- T9.2.1 Consolidar catálogo de erros de ações externas.
+- T9.2.2 Padronizar mensagens técnicas e de usuário para falhas recorrentes.
+- T9.2.3 Cobrir cenários de erro crítico com testes de regressão.
+
+Critério de saída E9:
+- Diagnóstico de incidentes reproduzível com evidência de logs e testes.
+
+## E10 - Expansão controlada de ações externas
+Objetivo: crescer o catálogo de integrações sem quebrar contrato do runner.
+
+### H10.1 - Novo dispositivo de referência
+- T10.1.1 Definir contrato de scripts para novo device.
+- T10.1.2 Integrar ações `install/remove/status` no runner.
+- T10.1.3 Adicionar suíte de regressão dedicada do novo device.
+
+### H10.2 - Hardening de segurança do runner
+- T10.2.1 Reforçar validações de input em parâmetros opcionais.
+- T10.2.2 Revisar política de allowlist de diretórios.
+- T10.2.3 Executar revisão de quoting/escaping em fluxos críticos.
+
+Critério de saída E10:
+- Novo device operando com cobertura automatizada e sem regressão nos devices existentes.
+
+## E11 - Release e manutenção de longo prazo
+Objetivo: preparar ciclo de release estável pós-V1.
+
+### H11.1 - Estratégia de versionamento ativo
+- T11.1.1 Definir cadência de release (`minor`/`patch`) e política de backport.
+- T11.1.2 Formalizar checklist de release com promoção de `Unreleased`.
+- T11.1.3 Publicar baseline de compatibilidade suportada por versão.
+
+### H11.2 - Governança de qualidade contínua
+- T11.2.1 Definir rotina de revisão técnica trimestral de documentação.
+- T11.2.2 Definir rotina de execução de suíte por marcos de manutenção.
+- T11.2.3 Registrar critérios para depreciação controlada de comportamento.
+
+Critério de saída E11:
+- Processo de release/manutenção definido e operacionalizado em documentação.
