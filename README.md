@@ -16,4 +16,5 @@ Alcançar paridade funcional com a versão atual de referência, com arquitetura
 - `CHANGELOG.md`
 
 ## Estado
-Documentação inicial criada. Implementação ainda não iniciada.
+- V1 implementada até `E8/H8.1`, com suíte oficial validada.
+- Próximo item oficial do backlog: `E8/H8.2` (fechamento documental final da fase).
