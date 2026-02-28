@@ -107,3 +107,8 @@ Exemplos:
 - Publica guias operacionais de execução e troubleshooting para rotina de validação e suporte local (E8/H8.2/T8.2.2). [PR #25] [commit 65bf02b]
 - Prepara backlog pós-V1 com épicos iniciais de observabilidade, expansão de ações externas e governança de release (E8/H8.2/T8.2.3). [PR #25] [commit f4aef89]
 - Reprioriza o pós-V1 para paridade funcional com `linux-setup-legacy/menu.sh`, definindo o épico único de release `v1.0.0` com histórias verticais de app real (E9/H9.1-H9.7). [PR #25] [commit 4f06127]
+- Integra o loop principal de runtime ao entrypoint da aplicação com app shell dedicado e tratamento de input para encerramento por `Q` (E9/H9.1/T9.1.1). [PR #26] [commit 6554dbf]
+- Renderiza layout base do app shell em runtime real com `background`, `header`, área central e `footer`, usando pipeline incremental (`dirty regions + diff renderer`) (E9/H9.1/T9.1.2). [PR #26] [commit 748a71b]
+- Inicializa barra de mensagem operacional no shell e reforça cleanup idempotente no fluxo completo de execução/encerramento (E9/H9.1/T9.1.3). [PR #26] [commit d502c2d]
+- Refatora helpers de render do app shell para reduzir duplicação e manter o caminho de `back buffer` explícito no runtime (E9/H9.1). [PR #26] [commit b3e6c0f]
+- Refatora hot paths de `cell_buffer` e `diff_renderer` para reduzir overhead de render inicial e manter startup na faixa de baixa latência em terminal real (E9/H9.1). [PR #26] [commit 8b7763b]

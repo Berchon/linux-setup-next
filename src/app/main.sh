@@ -18,7 +18,17 @@ main() {
 
   runtime_install_signal_traps
   runtime_init
-  printf 'linux-setup-next: bootstrap ready\n'
+
+  if ! runtime_is_tty; then
+    printf 'linux-setup-next: bootstrap ready\n'
+  fi
+
+  if ! app_shell_run; then
+    runtime_cleanup
+    return 1
+  fi
+
+  runtime_cleanup
 }
 
 main "$@"

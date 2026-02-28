@@ -15,7 +15,8 @@ Descrever a operação padrão da V1 (`linux-setup-next`) para execução local,
    - `src/app/main.sh`
 3. Comportamento esperado:
    - entrada e saída do alternate screen;
-   - mensagem de bootstrap: `linux-setup-next: bootstrap ready`;
+   - render imediato do layout base (header, área central e barra de mensagem);
+   - mensagem de bootstrap `linux-setup-next: bootstrap ready` somente quando executado em modo não interativo (não-TTY);
    - restauração de terminal em encerramento normal ou por sinal.
 
 ## 4. Rotina de validação automatizada
@@ -23,8 +24,8 @@ Descrever a operação padrão da V1 (`linux-setup-next`) para execução local,
    - `scripts/run_tests_sequential.sh`
 2. Critério de aprovação:
    - `Failed: 0`.
-3. Resultado de referência na baseline de H8.1:
-   - `65/65 PASS` em `2026-02-28`.
+3. Resultado de referência da baseline atual:
+   - `67/67 PASS` no runner oficial (`scripts/run_tests_sequential.sh`).
 
 ## 5. Validação rápida das ações externas de referência
 1. Scripts disponíveis:
