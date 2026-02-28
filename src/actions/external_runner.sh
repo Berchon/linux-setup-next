@@ -230,3 +230,58 @@ external_runner_map_exit_code_to_severity() {
   REPLY="${severity}"
   printf '%s' "${severity}"
 }
+
+external_runner_build_result_message() {
+  local action="$1"
+  local rc="$2"
+  local detail=""
+
+  if [[ -n "${external_runner_last_error}" ]]; then
+    detail="${external_runner_last_error}"
+  elif [[ -n "${external_runner_last_stderr}" ]]; then
+    detail="${external_runner_last_stderr%%$'\n'*}"
+  elif [[ -n "${external_runner_last_stdout}" ]]; then
+    detail="${external_runner_last_stdout%%$'\n'*}"
+  else
+    detail="exit code ${rc}"
+  fi
+
+  printf '%s: %s' "${action}" "${detail}"
+}
+
+external_runner_present_result() {
+  local action="$1"
+  local rc="${2:-${external_runner_last_rc}}"
+  local timed_out="${3:-${external_runner_last_timed_out}}"
+  local severity=""
+  local title=""
+  local message=""
+
+  external_runner_map_exit_code_to_severity "${action}" "${rc}" "${timed_out}" >/dev/null
+  severity="${REPLY}"
+  message="$(external_runner_build_result_message "${action}" "${rc}")"
+  title="External action: ${action} (${severity})"
+
+  case "${action}" in
+    status)
+      if declare -F toast_state_enqueue >/dev/null; then
+        toast_state_enqueue "${severity}" "${message}"
+      fi
+      ;;
+    install|remove)
+      if declare -F modal_state_open_text >/dev/null; then
+        modal_state_open_text "${title}" "${message}"
+      elif declare -F toast_state_enqueue >/dev/null; then
+        toast_state_enqueue "${severity}" "${message}"
+      fi
+      ;;
+    *)
+      if declare -F toast_state_enqueue >/dev/null; then
+        toast_state_enqueue "${severity}" "${message}"
+      fi
+      ;;
+  esac
+
+  REPLY="${severity}|${message}"
+  printf '%s' "${REPLY}"
+}
