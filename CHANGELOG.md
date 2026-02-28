@@ -91,3 +91,6 @@ Exemplos:
 - Carrega o catálogo de i18n no boot a partir de `app.language` já resolvido em configuração, garantindo idioma inicial consistente com arquivo persistido (E6/H6.2/T6.2.1). [PR #20] [commit 293685b]
 - Permite troca de idioma em runtime via menu de configurações com atualização imediata do catálogo após edição persistida (E6/H6.2/T6.2.2). [PR #20] [commit 2e2235b]
 - Persiste alteração de idioma com feedback por toast traduzido via i18n e fallback seguro de mensagem (E6/H6.2/T6.2.3). [PR #20] [commit 5a9be98]
+- Resolve caminho de scripts externos com diretório permitido e bloqueio de path traversal para execução segura (E7/H7.1/T7.1.1). [PR #21] [commit 609acb2]
+- Executa scripts externos com timeout obrigatório e sinalização explícita de expiração para evitar bloqueio de fluxo (E7/H7.1/T7.1.2). [PR #21] [commit 7d1d956]
+- Captura `stdout/stderr` de scripts externos e sanitiza saída para consumo seguro na UI (E7/H7.1/T7.1.3). [PR #21] [commit 87fca65]
