@@ -29,6 +29,10 @@ panel_content_rect() {
   local padding_right="${7:-0}"
   local padding_bottom="${8:-0}"
   local padding_left="${9:-0}"
+  local border_margin_top="${10:-0}"
+  local border_margin_right="${11:-0}"
+  local border_margin_bottom="${12:-0}"
+  local border_margin_left="${13:-0}"
   local content_x=0
   local content_y=0
   local content_width=0
@@ -50,6 +54,10 @@ panel_content_rect() {
     return 1
   fi
 
+  if ! panel_is_non_negative_integer "${border_margin_top}" || ! panel_is_non_negative_integer "${border_margin_right}" || ! panel_is_non_negative_integer "${border_margin_bottom}" || ! panel_is_non_negative_integer "${border_margin_left}"; then
+    return 1
+  fi
+
   if ((width == 0 || height == 0)); then
     printf '0|0|0|0\n'
     return 0
@@ -59,6 +67,16 @@ panel_content_rect() {
   content_y="${y}"
   content_width="${width}"
   content_height="${height}"
+
+  content_x=$((content_x + border_margin_left))
+  content_y=$((content_y + border_margin_top))
+  content_width=$((content_width - border_margin_left - border_margin_right))
+  content_height=$((content_height - border_margin_top - border_margin_bottom))
+
+  if ((content_width <= 0 || content_height <= 0)); then
+    printf '%s|%s|0|0\n' "${content_x}" "${content_y}"
+    return 0
+  fi
 
   if [[ "${border_style}" != "none" ]]; then
     content_x=$((content_x + 1))
@@ -98,7 +116,7 @@ panel_render() {
   local border_style="${10:-none}"
   local title="${11:-}"
   local shadow_enabled="${12:-0}"
-  local shadow_dx="${13:-1}"
+  local shadow_dx="${13:-2}"
   local shadow_dy="${14:-1}"
   local shadow_char="${15:-.}"
   local shadow_fg="${16:-0}"
@@ -108,6 +126,10 @@ panel_render() {
   local padding_right="${20:-0}"
   local padding_bottom="${21:-0}"
   local padding_left="${22:-0}"
+  local border_margin_top="${23:-0}"
+  local border_margin_right="${24:-0}"
+  local border_margin_bottom="${25:-0}"
+  local border_margin_left="${26:-0}"
 
   if ! declare -F rectangle_render >/dev/null; then
     return 1
@@ -117,7 +139,7 @@ panel_render() {
     return 1
   fi
 
-  if ! panel_content_rect "${x}" "${y}" "${width}" "${height}" "${border_style}" "${padding_top}" "${padding_right}" "${padding_bottom}" "${padding_left}" >/dev/null; then
+  if ! panel_content_rect "${x}" "${y}" "${width}" "${height}" "${border_style}" "${padding_top}" "${padding_right}" "${padding_bottom}" "${padding_left}" "${border_margin_top}" "${border_margin_right}" "${border_margin_bottom}" "${border_margin_left}" >/dev/null; then
     return 1
   fi
 
@@ -125,7 +147,7 @@ panel_render() {
     return 1
   fi
 
-  rectangle_render "${buffer_name}" "${x}" "${y}" "${width}" "${height}" "${fill_char}" "${fg}" "${bg}" "${bold}" "${border_style}" "${title}"
+  rectangle_render "${buffer_name}" "${x}" "${y}" "${width}" "${height}" "${fill_char}" "${fg}" "${bg}" "${bold}" "${border_style}" "${title}" "${border_margin_top}" "${border_margin_right}" "${border_margin_bottom}" "${border_margin_left}"
 }
 
 panel_render_with_content() {
@@ -141,7 +163,7 @@ panel_render_with_content() {
   local border_style="${10:-none}"
   local title="${11:-}"
   local shadow_enabled="${12:-0}"
-  local shadow_dx="${13:-1}"
+  local shadow_dx="${13:-2}"
   local shadow_dy="${14:-1}"
   local shadow_char="${15:-.}"
   local shadow_fg="${16:-0}"
@@ -151,7 +173,11 @@ panel_render_with_content() {
   local padding_right="${20:-0}"
   local padding_bottom="${21:-0}"
   local padding_left="${22:-0}"
-  local content_renderer="${23:-}"
+  local border_margin_top="${23:-0}"
+  local border_margin_right="${24:-0}"
+  local border_margin_bottom="${25:-0}"
+  local border_margin_left="${26:-0}"
+  local content_renderer="${27:-}"
   local content_rect=""
   local content_x=0
   local content_y=0
@@ -159,11 +185,11 @@ panel_render_with_content() {
   local content_height=0
   local -a content_args=()
 
-  if (($# > 23)); then
-    content_args=("${@:24}")
+  if (($# > 27)); then
+    content_args=("${@:28}")
   fi
 
-  if ! panel_render "${buffer_name}" "${x}" "${y}" "${width}" "${height}" "${fill_char}" "${fg}" "${bg}" "${bold}" "${border_style}" "${title}" "${shadow_enabled}" "${shadow_dx}" "${shadow_dy}" "${shadow_char}" "${shadow_fg}" "${shadow_bg}" "${shadow_bold}" "${padding_top}" "${padding_right}" "${padding_bottom}" "${padding_left}"; then
+  if ! panel_render "${buffer_name}" "${x}" "${y}" "${width}" "${height}" "${fill_char}" "${fg}" "${bg}" "${bold}" "${border_style}" "${title}" "${shadow_enabled}" "${shadow_dx}" "${shadow_dy}" "${shadow_char}" "${shadow_fg}" "${shadow_bg}" "${shadow_bold}" "${padding_top}" "${padding_right}" "${padding_bottom}" "${padding_left}" "${border_margin_top}" "${border_margin_right}" "${border_margin_bottom}" "${border_margin_left}"; then
     return 1
   fi
 
@@ -175,7 +201,7 @@ panel_render_with_content() {
     return 1
   fi
 
-  content_rect="$(panel_content_rect "${x}" "${y}" "${width}" "${height}" "${border_style}" "${padding_top}" "${padding_right}" "${padding_bottom}" "${padding_left}")" || return 1
+  content_rect="$(panel_content_rect "${x}" "${y}" "${width}" "${height}" "${border_style}" "${padding_top}" "${padding_right}" "${padding_bottom}" "${padding_left}" "${border_margin_top}" "${border_margin_right}" "${border_margin_bottom}" "${border_margin_left}")" || return 1
   IFS='|' read -r content_x content_y content_width content_height <<< "${content_rect}"
 
   if ((content_width == 0 || content_height == 0)); then

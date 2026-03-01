@@ -292,6 +292,10 @@ toast_render_stack_from_state() {
       1 \
       0 \
       1 \
+      0 \
+      0 \
+      0 \
+      0 \
       toast_render_content \
       "${message}" \
       "${fg}" \
@@ -365,6 +369,10 @@ toast_render_frame() {
       1 \
       0 \
       1 \
+      0 \
+      0 \
+      0 \
+      0 \
       toast_render_content \
       "${message}" \
       "${fg}" \

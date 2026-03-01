@@ -62,7 +62,7 @@ assert_gt_zero "${#config_schema_warnings[@]}" "schema should register warnings 
 
 config_loader_reset_raw
 config_schema_resolve_from_raw
-assert_eq "${CONFIG_VALUES[theme.header.fg]}" "9" "schema should apply default when key is missing"
+assert_eq "${CONFIG_VALUES[theme.header.fg]}" "12" "schema should apply default when key is missing"
 assert_eq "$(config_schema_get_value "app.language" "pt")" "pt" "schema get should return stored value"
 assert_eq "$(config_schema_get_value "unknown.key" "fallback")" "fallback" "schema get should return fallback for unknown key"
 

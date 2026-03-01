@@ -452,7 +452,7 @@ app_shell_render_base_layout() {
   wallpaper_fg="$(app_shell_theme_int "theme.wallpaper.fg" "7")"
   wallpaper_bg="$(app_shell_theme_int "theme.wallpaper.bg" "0")"
   wallpaper_pattern_id="$(app_shell_theme_string "theme.wallpaper.pattern" "default")"
-  header_fg="$(app_shell_theme_int "theme.header.fg" "9")"
+  header_fg="$(app_shell_theme_int "theme.header.fg" "12")"
   header_bg="$(app_shell_theme_int "theme.header.bg" "15")"
   footer_fg="$(app_shell_theme_int "theme.footer.fg" "15")"
   footer_bg="$(app_shell_theme_int "theme.footer.bg" "0")"
@@ -474,9 +474,6 @@ app_shell_render_base_layout() {
   header_clock_text="$(app_shell_clock_text)"
 
   if ((header_width > 0 && header_height > 0)) && declare -F panel_render_with_content >/dev/null; then
-    header_x=$((header_x + 1))
-    header_width=$((header_width - 2))
-
     panel_render_with_content \
       back \
       "${header_x}" \
@@ -496,6 +493,10 @@ app_shell_render_base_layout() {
       "${wallpaper_fg}" \
       "${header_shadow_bg}" \
       0 \
+      0 \
+      1 \
+      0 \
+      1 \
       0 \
       1 \
       0 \

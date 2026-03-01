@@ -56,7 +56,7 @@ config_schema_init() {
   config_schema_define_key "theme.toast.border_style" "single" "enum" "none|single|double" "" ""
   config_schema_define_key "theme.toast.shadow.enabled" "true" "bool" "" "" ""
   config_schema_define_key "theme.toast.ttl_ms" "2500" "int" "" "100" "60000"
-  config_schema_define_key "theme.header.fg" "9" "int" "" "0" "255"
+  config_schema_define_key "theme.header.fg" "12" "int" "" "0" "255"
   config_schema_define_key "theme.header.bg" "15" "int" "" "0" "255"
   config_schema_define_key "theme.footer.fg" "15" "int" "" "0" "255"
   config_schema_define_key "theme.footer.bg" "0" "int" "" "0" "255"
