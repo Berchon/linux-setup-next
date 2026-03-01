@@ -5,6 +5,7 @@ app_shell_last_key=""
 app_shell_screen_width=0
 app_shell_screen_height=0
 app_shell_message_bar_text=""
+app_shell_last_clock_second=-1
 
 app_shell_is_positive_integer() {
   [[ "$1" =~ ^[1-9][0-9]*$ ]]
@@ -237,7 +238,6 @@ app_shell_compute_header_rect() {
   local y=1
   local width=0
   local height=5
-  local margin_x=0
 
   if ! app_shell_is_positive_integer "${screen_width}" || ! app_shell_is_positive_integer "${screen_height}"; then
     return 1
@@ -248,14 +248,9 @@ app_shell_compute_header_rect() {
     return 0
   fi
 
-  margin_x=$((screen_width / 6))
-  if ((margin_x < 2)); then
-    margin_x=2
-  fi
-
-  width=$((screen_width - (margin_x * 2)))
-  if ((width > 62)); then
-    width=62
+  width=$((screen_width * 80 / 100))
+  if ((width >= screen_width)); then
+    width=$((screen_width - 2))
   fi
 
   if ((width < 20)); then
@@ -283,6 +278,31 @@ app_shell_clock_text() {
   fi
 
   printf -- '--:--'
+}
+
+app_shell_now_epoch_seconds() {
+  if command -v date >/dev/null 2>&1; then
+    date '+%s' 2>/dev/null || printf '0'
+    return 0
+  fi
+
+  printf '0'
+}
+
+app_shell_clock_tick_due() {
+  local now_seconds="$1"
+
+  if [[ "${app_shell_last_clock_second}" == "-1" ]]; then
+    app_shell_last_clock_second="${now_seconds}"
+    return 1
+  fi
+
+  if [[ "${now_seconds}" != "${app_shell_last_clock_second}" ]]; then
+    app_shell_last_clock_second="${now_seconds}"
+    return 0
+  fi
+
+  return 1
 }
 
 app_shell_render_header_content() {
@@ -330,7 +350,7 @@ app_shell_render_header_shadow_tint() {
   local pattern_id="$5"
   local wallpaper_fg="$6"
   local shadow_bg="$7"
-  local dx="${8:-1}"
+  local dx="${8:-2}"
   local dy="${9:-1}"
 
   if ! declare -F background_render_region >/dev/null; then
@@ -432,7 +452,7 @@ app_shell_render_base_layout() {
   wallpaper_fg="$(app_shell_theme_int "theme.wallpaper.fg" "7")"
   wallpaper_bg="$(app_shell_theme_int "theme.wallpaper.bg" "0")"
   wallpaper_pattern_id="$(app_shell_theme_string "theme.wallpaper.pattern" "default")"
-  header_fg="$(app_shell_theme_int "theme.header.fg" "6")"
+  header_fg="$(app_shell_theme_int "theme.header.fg" "9")"
   header_bg="$(app_shell_theme_int "theme.header.bg" "15")"
   footer_fg="$(app_shell_theme_int "theme.footer.fg" "15")"
   footer_bg="$(app_shell_theme_int "theme.footer.bg" "0")"
@@ -454,6 +474,9 @@ app_shell_render_base_layout() {
   header_clock_text="$(app_shell_clock_text)"
 
   if ((header_width > 0 && header_height > 0)) && declare -F panel_render_with_content >/dev/null; then
+    header_x=$((header_x + 1))
+    header_width=$((header_width - 2))
+
     panel_render_with_content \
       back \
       "${header_x}" \
@@ -466,8 +489,8 @@ app_shell_render_base_layout() {
       0 \
       single \
       "" \
-      0 \
       1 \
+      2 \
       1 \
       "." \
       "${wallpaper_fg}" \
@@ -491,7 +514,7 @@ app_shell_render_base_layout() {
       "${wallpaper_pattern_id}" \
       "${wallpaper_fg}" \
       "${header_shadow_bg}" \
-      1 \
+      2 \
       1
 
     center_y_min=$((header_y + header_height + 1))
@@ -584,7 +607,10 @@ app_shell_default_message_bar() {
 }
 
 app_shell_run() {
+  local now_seconds=0
+
   app_shell_running=1
+  app_shell_last_clock_second=-1
   app_shell_set_message_bar "$(app_shell_default_message_bar)"
 
   app_shell_sync_viewport 1 || return 1
@@ -606,6 +632,11 @@ app_shell_run() {
     if app_shell_read_key; then
       app_shell_handle_key "${app_shell_last_key}"
       continue
+    fi
+
+    now_seconds="$(app_shell_now_epoch_seconds)"
+    if app_shell_clock_tick_due "${now_seconds}"; then
+      app_shell_render_base_layout || return 1
     fi
   done
 }
