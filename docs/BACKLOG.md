@@ -245,35 +245,39 @@ Objetivo: entregar a aplicação rodando fim a fim com comportamento equivalente
 - T9.1.2 Renderizar layout base (background, header, footer e área central).
 - T9.1.3 Garantir barra de mensagem inicial e cleanup terminal idempotente no fluxo completo.
 
-### H9.2 - Menu principal e submenus em tela real
-- T9.2.1 Conectar modelo de menu ao render da tela principal.
-- T9.2.2 Implementar navegação completa (`up/down/enter/back/quit`) no app rodando.
-- T9.2.3 Validar caminhos de submenu equivalentes aos fluxos do `legacy`.
+### H9.2 - Componente de background por padrão
+- T9.2.1 Criar componente `Background` com renderização por padrão repetível (tile) em região configurável da tela.
+- T9.2.2 Atualizar o `Header` para paridade visual com a referência do `Footer`: painel retangular com fundo branco e texto em azul claro, respeitando margens/espacamentos do mock de referência, com sombra que escurece o background abaixo sem perder o padrão base.
 
-### H9.3 - Fluxos de ações externas fim a fim
-- T9.3.1 Ligar itens de menu ao `action_router` e ao `external_runner`.
-- T9.3.2 Exibir retorno de `install/remove/status` no contexto correto da UI.
-- T9.3.3 Garantir mapeamento de severidade e timeout no fluxo real.
+### H9.3 - Menu principal e submenus em tela real
+- T9.3.1 Conectar modelo de menu ao render da tela principal.
+- T9.3.2 Implementar navegação completa (`up/down/enter/back/quit`) no app rodando.
+- T9.3.3 Validar caminhos de submenu equivalentes aos fluxos do `legacy`.
 
-### H9.4 - Modal e confirmação no fluxo real
-- T9.4.1 Exibir modal de status após ações que exigem detalhe de retorno.
-- T9.4.2 Exibir modal de confirmação em ações destrutivas/sensíveis.
-- T9.4.3 Garantir bloqueio de fundo e foco correto enquanto modal está ativo.
+### H9.4 - Fluxos de ações externas fim a fim
+- T9.4.1 Ligar itens de menu ao `action_router` e ao `external_runner`.
+- T9.4.2 Exibir retorno de `install/remove/status` no contexto correto da UI.
+- T9.4.3 Garantir mapeamento de severidade e timeout no fluxo real.
 
-### H9.5 - Toast e barra de mensagem operacional
-- T9.5.1 Exibir toast para feedback curto de sucesso/erro/aviso.
-- T9.5.2 Integrar barra de mensagem com estado contextual da tela ativa.
-- T9.5.3 Garantir convivência visual de menu/modal/toast/barra sem artefatos.
+### H9.5 - Modal e confirmação no fluxo real
+- T9.5.1 Exibir modal de status após ações que exigem detalhe de retorno.
+- T9.5.2 Exibir modal de confirmação em ações destrutivas/sensíveis.
+- T9.5.3 Garantir bloqueio de fundo e foco correto enquanto modal está ativo.
 
-### H9.6 - i18n em runtime com persistência
-- T9.6.1 Disponibilizar troca de idioma PT/EN durante execução.
-- T9.6.2 Atualizar textos renderizados após mudança de idioma.
-- T9.6.3 Persistir idioma selecionado e validar comportamento pós-restart.
+### H9.6 - Toast e barra de mensagem operacional
+- T9.6.1 Exibir toast para feedback curto de sucesso/erro/aviso.
+- T9.6.2 Integrar barra de mensagem com estado contextual da tela ativa.
+- T9.6.3 Garantir convivência visual de menu/modal/toast/barra sem artefatos.
 
-### H9.7 - Hardening de paridade e release candidate
-- T9.7.1 Consolidar checklist `legacy vs next` com cobertura dos fluxos principais.
-- T9.7.2 Corrigir lacunas de paridade identificadas na validação final.
-- T9.7.3 Preparar pacote de release (`CHANGELOG`, validações finais e prontidão para tag `v1.0.0`).
+### H9.7 - i18n em runtime com persistência
+- T9.7.1 Disponibilizar troca de idioma PT/EN durante execução.
+- T9.7.2 Atualizar textos renderizados após mudança de idioma.
+- T9.7.3 Persistir idioma selecionado e validar comportamento pós-restart.
+
+### H9.8 - Hardening de paridade e release candidate
+- T9.8.1 Consolidar checklist `legacy vs next` com cobertura dos fluxos principais.
+- T9.8.2 Corrigir lacunas de paridade identificadas na validação final.
+- T9.8.3 Preparar pacote de release (`CHANGELOG`, validações finais e prontidão para tag `v1.0.0`).
 
 Critério de saída E9:
 - `linux-setup-next` funcionalmente equivalente ao `legacy` nos fluxos essenciais, com suíte oficial passando e pronto para release `v1.0.0`.

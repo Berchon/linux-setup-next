@@ -230,6 +230,138 @@ app_shell_fill_back_row() {
   done
 }
 
+app_shell_compute_header_rect() {
+  local screen_width="$1"
+  local screen_height="$2"
+  local x=0
+  local y=1
+  local width=0
+  local height=5
+  local margin_x=0
+
+  if ! app_shell_is_positive_integer "${screen_width}" || ! app_shell_is_positive_integer "${screen_height}"; then
+    return 1
+  fi
+
+  if ((screen_width < 32 || screen_height < 10)); then
+    printf '0|0|0|0\n'
+    return 0
+  fi
+
+  margin_x=$((screen_width / 6))
+  if ((margin_x < 2)); then
+    margin_x=2
+  fi
+
+  width=$((screen_width - (margin_x * 2)))
+  if ((width > 62)); then
+    width=62
+  fi
+
+  if ((width < 20)); then
+    printf '0|0|0|0\n'
+    return 0
+  fi
+
+  x=$(((screen_width - width) / 2))
+  if ((y + height >= screen_height - 1)); then
+    y=0
+  fi
+
+  if ((y + height >= screen_height - 1)); then
+    printf '0|0|0|0\n'
+    return 0
+  fi
+
+  printf '%s|%s|%s|%s\n' "${x}" "${y}" "${width}" "${height}"
+}
+
+app_shell_clock_text() {
+  if command -v date >/dev/null 2>&1; then
+    date '+%H:%M' 2>/dev/null || printf -- '--:--'
+    return 0
+  fi
+
+  printf -- '--:--'
+}
+
+app_shell_render_header_content() {
+  local buffer_name="$1"
+  local x="$2"
+  local y="$3"
+  local width="$4"
+  local height="$5"
+  local title="$6"
+  local clock_text="$7"
+  local fg="$8"
+  local bg="$9"
+  local line=""
+  local title_text=""
+  local left_padding=0
+
+  if ((width <= 0 || height <= 0)); then
+    return 0
+  fi
+
+  printf -v line '%*s' "${width}" "${clock_text}"
+  line="${line:0:width}"
+  cell_buffer_write_text "${buffer_name}" "${x}" "${y}" "${line}" "${fg}" "${bg}" 0
+
+  if ((height < 2)); then
+    return 0
+  fi
+
+  title_text="${title:0:width}"
+  left_padding=$(((width - ${#title_text}) / 2))
+  if ((left_padding < 0)); then
+    left_padding=0
+  fi
+
+  printf -v line '%*s%s' "${left_padding}" '' "${title_text}"
+  printf -v line '%-*s' "${width}" "${line:0:width}"
+  cell_buffer_write_text "${buffer_name}" "${x}" "$((y + 1))" "${line}" "${fg}" "${bg}" 1
+}
+
+app_shell_render_header_shadow_tint() {
+  local x="$1"
+  local y="$2"
+  local width="$3"
+  local height="$4"
+  local pattern_id="$5"
+  local wallpaper_fg="$6"
+  local shadow_bg="$7"
+  local dx="${8:-1}"
+  local dy="${9:-1}"
+
+  if ! declare -F background_render_region >/dev/null; then
+    return 0
+  fi
+
+  if ((dx <= 0 || dy <= 0)); then
+    return 0
+  fi
+
+  background_render_region back \
+    "$((x + width))" \
+    "$((y + dy))" \
+    "${dx}" \
+    "${height}" \
+    "${pattern_id}" \
+    "${wallpaper_fg}" \
+    "${shadow_bg}" \
+    0
+
+  background_render_region back \
+    "$((x + dx))" \
+    "$((y + height))" \
+    "${width}" \
+    "${dy}" \
+    "${pattern_id}" \
+    "${wallpaper_fg}" \
+    "${shadow_bg}" \
+    0
+}
+
 app_shell_mark_base_layout_dirty_regions() {
   local wallpaper_full_fill="$1"
   local width="$2"
@@ -275,7 +407,15 @@ app_shell_render_base_layout() {
   local footer_bg=0
   local center_y=1
   local center_height=0
-  local header_text=" linux-setup-next "
+  local center_y_min=1
+  local header_title="Linux - Setup & Configuration"
+  local header_clock_text=""
+  local header_rect=""
+  local header_x=0
+  local header_y=0
+  local header_width=0
+  local header_height=0
+  local header_shadow_bg=8
   local footer_text=""
   local wallpaper_requires_full_fill=0
   local wallpaper_pattern_id="default"
@@ -292,8 +432,8 @@ app_shell_render_base_layout() {
   wallpaper_fg="$(app_shell_theme_int "theme.wallpaper.fg" "7")"
   wallpaper_bg="$(app_shell_theme_int "theme.wallpaper.bg" "0")"
   wallpaper_pattern_id="$(app_shell_theme_string "theme.wallpaper.pattern" "default")"
-  header_fg="$(app_shell_theme_int "theme.header.fg" "15")"
-  header_bg="$(app_shell_theme_int "theme.header.bg" "4")"
+  header_fg="$(app_shell_theme_int "theme.header.fg" "6")"
+  header_bg="$(app_shell_theme_int "theme.header.bg" "15")"
   footer_fg="$(app_shell_theme_int "theme.footer.fg" "15")"
   footer_bg="$(app_shell_theme_int "theme.footer.bg" "0")"
 
@@ -309,11 +449,63 @@ app_shell_render_base_layout() {
     wallpaper_requires_full_fill=1
   fi
 
-  app_shell_fill_back_row 0 "${app_shell_screen_width}" "${header_fg}" "${header_bg}" 1
-  cell_buffer_write_text back 0 0 "${header_text:0:${app_shell_screen_width}}" "${header_fg}" "${header_bg}" 1
+  header_rect="$(app_shell_compute_header_rect "${app_shell_screen_width}" "${app_shell_screen_height}")"
+  IFS='|' read -r header_x header_y header_width header_height <<< "${header_rect}"
+  header_clock_text="$(app_shell_clock_text)"
 
-  if ((app_shell_screen_height > 2)); then
-    center_height=$((app_shell_screen_height - 2))
+  if ((header_width > 0 && header_height > 0)) && declare -F panel_render_with_content >/dev/null; then
+    panel_render_with_content \
+      back \
+      "${header_x}" \
+      "${header_y}" \
+      "${header_width}" \
+      "${header_height}" \
+      " " \
+      "${header_fg}" \
+      "${header_bg}" \
+      0 \
+      single \
+      "" \
+      0 \
+      1 \
+      1 \
+      "." \
+      "${wallpaper_fg}" \
+      "${header_shadow_bg}" \
+      0 \
+      0 \
+      1 \
+      0 \
+      1 \
+      app_shell_render_header_content \
+      "${header_title}" \
+      "${header_clock_text}" \
+      "${header_fg}" \
+      "${header_bg}"
+
+    app_shell_render_header_shadow_tint \
+      "${header_x}" \
+      "${header_y}" \
+      "${header_width}" \
+      "${header_height}" \
+      "${wallpaper_pattern_id}" \
+      "${wallpaper_fg}" \
+      "${header_shadow_bg}" \
+      1 \
+      1
+
+    center_y_min=$((header_y + header_height + 1))
+  else
+    app_shell_fill_back_row 0 "${app_shell_screen_width}" "${header_fg}" "${header_bg}" 1
+    cell_buffer_write_text back 0 0 "${header_title:0:${app_shell_screen_width}}" "${header_fg}" "${header_bg}" 1
+  fi
+
+  if ((center_y < center_y_min)); then
+    center_y="${center_y_min}"
+  fi
+
+  if ((app_shell_screen_height > center_y + 1)); then
+    center_height=$((app_shell_screen_height - center_y - 1))
     app_shell_draw_back_box_border 0 "${center_y}" "${app_shell_screen_width}" "${center_height}" "${header_fg}" "${wallpaper_bg}" 0 "Main"
   fi
 
@@ -323,10 +515,14 @@ app_shell_render_base_layout() {
     cell_buffer_write_text back 0 "$((app_shell_screen_height - 1))" "${footer_text:0:${app_shell_screen_width}}" "${footer_fg}" "${footer_bg}" 0
   fi
 
-  app_shell_mark_base_layout_dirty_regions \
-    "${wallpaper_requires_full_fill}" \
-    "${app_shell_screen_width}" \
-    "${app_shell_screen_height}"
+  if [[ "${wallpaper_requires_full_fill}" == "1" ]]; then
+    dirty_regions_add 0 0 "${app_shell_screen_width}" "${app_shell_screen_height}"
+  else
+    app_shell_mark_base_layout_dirty_regions \
+      "${wallpaper_requires_full_fill}" \
+      "${app_shell_screen_width}" \
+      "${app_shell_screen_height}"
+  fi
   diff_renderer_render_dirty 1
 }
 
