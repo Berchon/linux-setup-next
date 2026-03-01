@@ -43,6 +43,18 @@ app_shell_theme_int() {
   ui_state_get_config "${key}" "${fallback}"
 }
 
+app_shell_theme_string() {
+  local key="$1"
+  local fallback="$2"
+
+  if ! declare -F ui_state_get_config >/dev/null; then
+    printf '%s\n' "${fallback}"
+    return 0
+  fi
+
+  ui_state_get_config "${key}" "${fallback}"
+}
+
 app_shell_detect_terminal_size() {
   local width="${COLUMNS:-}"
   local height="${LINES:-}"
@@ -266,30 +278,35 @@ app_shell_render_base_layout() {
   local header_text=" linux-setup-next "
   local footer_text=""
   local wallpaper_requires_full_fill=0
-  local y=0
+  local wallpaper_pattern_id="default"
 
   if ! declare -F cell_buffer_write_text >/dev/null || ! declare -F diff_renderer_render_dirty >/dev/null || ! declare -F dirty_regions_add >/dev/null; then
     return 0
   fi
 
+  if declare -F background_ensure_patterns_loaded >/dev/null; then
+    background_ensure_patterns_loaded || true
+  fi
+
   wallpaper_enabled="$(app_shell_theme_bool "theme.wallpaper.enabled" "true")"
   wallpaper_fg="$(app_shell_theme_int "theme.wallpaper.fg" "7")"
   wallpaper_bg="$(app_shell_theme_int "theme.wallpaper.bg" "0")"
+  wallpaper_pattern_id="$(app_shell_theme_string "theme.wallpaper.pattern" "default")"
   header_fg="$(app_shell_theme_int "theme.header.fg" "15")"
   header_bg="$(app_shell_theme_int "theme.header.bg" "4")"
   footer_fg="$(app_shell_theme_int "theme.footer.fg" "15")"
   footer_bg="$(app_shell_theme_int "theme.footer.bg" "0")"
 
-  if [[ "${wallpaper_enabled}" == "1" ]]; then
-    if [[ "${wallpaper_fg}" != "7" ]] || [[ "${wallpaper_bg}" != "0" ]]; then
-      wallpaper_requires_full_fill=1
-    fi
-  fi
-
-  if [[ "${wallpaper_requires_full_fill}" == "1" ]]; then
-    for ((y = 0; y < app_shell_screen_height; y++)); do
-      app_shell_fill_back_row "${y}" "${app_shell_screen_width}" "${wallpaper_fg}" "${wallpaper_bg}" 0
-    done
+  if [[ "${wallpaper_enabled}" == "1" ]] && declare -F background_render_screen >/dev/null; then
+    background_render_screen \
+      back \
+      "${app_shell_screen_width}" \
+      "${app_shell_screen_height}" \
+      "${wallpaper_pattern_id}" \
+      "${wallpaper_fg}" \
+      "${wallpaper_bg}" \
+      0
+    wallpaper_requires_full_fill=1
   fi
 
   app_shell_fill_back_row 0 "${app_shell_screen_width}" "${header_fg}" "${header_bg}" 1

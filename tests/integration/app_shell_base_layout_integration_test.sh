@@ -37,6 +37,8 @@ source "${TEST_ROOT}/src/components/shadow.sh"
 source "${TEST_ROOT}/src/components/panel.sh"
 # shellcheck source=src/components/menu.sh
 source "${TEST_ROOT}/src/components/menu.sh"
+# shellcheck source=src/components/background.sh
+source "${TEST_ROOT}/src/components/background.sh"
 # shellcheck source=src/app/app_shell.sh
 source "${TEST_ROOT}/src/app/app_shell.sh"
 
@@ -77,6 +79,7 @@ app_shell_render_base_layout
 
 assert_eq "$(cell_buffer_get_cell front 1 0)" "l|15|4|1" "header should render application title"
 assert_eq "$(cell_buffer_get_cell front 0 1)" "+|15|0|0" "central area should render panel border"
+assert_eq "$(cell_buffer_get_cell front 2 2)" ".|7|0|0" "center body should use wallpaper pattern tile"
 assert_eq "$(cell_buffer_get_cell front 1 9)" "b|15|0|0" "footer should render message bar text"
 assert_contains "${ansi_output}" $'\033[1;1H' "diff renderer should emit cursor movement for layout draw"
 
