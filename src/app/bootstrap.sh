@@ -23,6 +23,7 @@ readonly -a DEFAULT_MODULE_ORDER=(
   "components/shadow.sh"
   "components/panel.sh"
   "components/menu.sh"
+  "components/background.sh"
   "app/app_shell.sh"
 )
 

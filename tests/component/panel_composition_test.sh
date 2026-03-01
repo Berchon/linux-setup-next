@@ -73,7 +73,7 @@ fi
 cell_buffer_init 12 8
 panel_content_calls=0
 panel_last_content_rect=""
-panel_render_with_content back 1 1 8 5 "." 2 4 0 single "P" 0 1 1 "." 0 8 0 1 1 0 1 panel_test_content_renderer "HELLO"
+panel_render_with_content back 1 1 8 5 "." 2 4 0 single "P" 0 1 1 "." 0 8 0 1 1 0 1 0 0 0 0 panel_test_content_renderer "HELLO"
 assert_eq "${panel_content_calls}" "1" "content renderer should be invoked once when content rect is visible"
 assert_eq "${panel_last_content_rect}" "3|3|4|2|HELLO" "content renderer should receive computed content rect and custom arg"
 assert_eq "$(cell_buffer_get_cell back 3 3)" "H|5|1|1" "content renderer should draw at content origin"
@@ -83,10 +83,10 @@ assert_eq "$(cell_buffer_get_cell back 7 3)" ".|2|4|0" "content renderer should 
 cell_buffer_init 8 5
 panel_content_calls=0
 panel_last_content_rect=""
-panel_render_with_content back 1 1 4 3 "." 2 4 0 single "P" 0 1 1 "." 0 8 0 1 1 1 1 panel_test_content_renderer "HIDDEN"
+panel_render_with_content back 1 1 4 3 "." 2 4 0 single "P" 0 1 1 "." 0 8 0 1 1 1 1 0 0 0 0 panel_test_content_renderer "HIDDEN"
 assert_eq "${panel_content_calls}" "0" "content renderer should not be called when content rect is empty"
 
-if panel_render_with_content back 0 0 4 3 "." 1 2 0 none "" 0 1 1 "." 0 8 0 0 0 0 0 missing_renderer >/dev/null 2>&1; then
+if panel_render_with_content back 0 0 4 3 "." 1 2 0 none "" 0 1 1 "." 0 8 0 0 0 0 0 0 0 0 0 missing_renderer >/dev/null 2>&1; then
   printf "FAIL: panel render with content should fail when callback is missing\n" >&2
   exit 1
 fi

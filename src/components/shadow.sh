@@ -8,6 +8,109 @@ shadow_is_non_negative_integer() {
   [[ "$1" =~ ^[0-9]+$ ]]
 }
 
+shadow_color_capacity() {
+  if [[ -n "${runtime_color_capacity:-}" ]] && shadow_is_non_negative_integer "${runtime_color_capacity}"; then
+    printf '%s\n' "${runtime_color_capacity}"
+    return 0
+  fi
+
+  printf '16\n'
+}
+
+shadow_darken_color_16() {
+  local color="$1"
+
+  if ! [[ "${color}" =~ ^-?[0-9]+$ ]]; then
+    printf '0\n'
+    return 0
+  fi
+
+  if ((color < 0)); then
+    color=0
+  fi
+
+  color=$((color % 16))
+
+  if ((color >= 8)); then
+    printf '%s\n' "$((color - 8))"
+    return 0
+  fi
+
+  if ((color == 0)); then
+    printf '0\n'
+    return 0
+  fi
+
+  printf '8\n'
+}
+
+shadow_darken_color_256() {
+  local color="$1"
+  local cube=0
+  local r=0
+  local g=0
+  local b=0
+
+  if ! [[ "${color}" =~ ^-?[0-9]+$ ]]; then
+    printf '0\n'
+    return 0
+  fi
+
+  if ((color < 0)); then
+    color=0
+  fi
+  if ((color > 255)); then
+    color=255
+  fi
+
+  if ((color < 16)); then
+    shadow_darken_color_16 "${color}"
+    return 0
+  fi
+
+  if ((color >= 232)); then
+    if ((color <= 232)); then
+      printf '16\n'
+    else
+      printf '%s\n' "$((color - 1))"
+    fi
+    return 0
+  fi
+
+  cube=$((color - 16))
+  r=$((cube / 36))
+  g=$(((cube / 6) % 6))
+  b=$((cube % 6))
+
+  if ((r > 0)); then
+    r=$((r - 1))
+  fi
+  if ((g > 0)); then
+    g=$((g - 1))
+  fi
+  if ((b > 0)); then
+    b=$((b - 1))
+  fi
+
+  printf '%s\n' "$((16 + r * 36 + g * 6 + b))"
+}
+
+shadow_darken_color() {
+  local color="$1"
+  local capacity="${2:-$(shadow_color_capacity)}"
+
+  if [[ ! "${capacity}" =~ ^[0-9]+$ ]]; then
+    capacity=16
+  fi
+
+  if ((capacity >= 256)); then
+    shadow_darken_color_256 "${color}"
+    return 0
+  fi
+
+  shadow_darken_color_16 "${color}"
+}
+
 shadow_resolve_enabled() {
   local value="${1:-1}"
 

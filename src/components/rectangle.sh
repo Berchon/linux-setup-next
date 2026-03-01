@@ -367,14 +367,35 @@ rectangle_render() {
   local bold="$9"
   local border_style="${10:-none}"
   local title="${11:-}"
+  local border_margin_top="${12:-0}"
+  local border_margin_right="${13:-0}"
+  local border_margin_bottom="${14:-0}"
+  local border_margin_left="${15:-0}"
+  local draw_x=0
+  local draw_y=0
+  local draw_width=0
+  local draw_height=0
+
+  if ! rectangle_is_non_negative_integer "${border_margin_top}" || ! rectangle_is_non_negative_integer "${border_margin_right}" || ! rectangle_is_non_negative_integer "${border_margin_bottom}" || ! rectangle_is_non_negative_integer "${border_margin_left}"; then
+    return 1
+  fi
+
+  draw_x=$((x + border_margin_left))
+  draw_y=$((y + border_margin_top))
+  draw_width=$((width - border_margin_left - border_margin_right))
+  draw_height=$((height - border_margin_top - border_margin_bottom))
+
+  if ((draw_width <= 0 || draw_height <= 0)); then
+    return 0
+  fi
 
   if ! rectangle_render_fill "${buffer_name}" "${x}" "${y}" "${width}" "${height}" "${fill_char}" "${fg}" "${bg}" "${bold}"; then
     return 1
   fi
 
-  if ! rectangle_render_border "${buffer_name}" "${x}" "${y}" "${width}" "${height}" "${border_style}" "${fg}" "${bg}" "${bold}"; then
+  if ! rectangle_render_border "${buffer_name}" "${draw_x}" "${draw_y}" "${draw_width}" "${draw_height}" "${border_style}" "${fg}" "${bg}" "${bold}"; then
     return 1
   fi
 
-  rectangle_render_title "${buffer_name}" "${x}" "${y}" "${width}" "${height}" "${border_style}" "${title}" "${fg}" "${bg}" "${bold}"
+  rectangle_render_title "${buffer_name}" "${draw_x}" "${draw_y}" "${draw_width}" "${draw_height}" "${border_style}" "${title}" "${fg}" "${bg}" "${bold}"
 }

@@ -49,6 +49,13 @@ assert_eq "$(cell_buffer_get_cell back 1 2)" "│|2|5|1" "single border should d
 assert_eq "$(cell_buffer_get_cell back 6 3)" "┘|2|5|1" "single border should draw continuous bottom-right corner in unicode mode"
 assert_eq "$(cell_buffer_get_cell back 3 2)" ".|2|5|1" "single border should preserve interior fill"
 
+cell_buffer_init 10 5
+rectangle_render back 1 1 8 3 "." 2 5 1 single "" 0 1 0 1
+assert_eq "$(cell_buffer_get_cell back 1 1)" ".|2|5|1" "left margin should be filled while border is inset"
+assert_eq "$(cell_buffer_get_cell back 2 1)" "┌|2|5|1" "border should start after left margin"
+assert_eq "$(cell_buffer_get_cell back 7 1)" "┐|2|5|1" "border should end before right margin"
+assert_eq "$(cell_buffer_get_cell back 8 1)" ".|2|5|1" "right margin should be filled while border is inset"
+
 cell_buffer_init 8 5
 rectangle_render back 1 1 6 3 "." 2 5 1 double
 assert_eq "$(cell_buffer_get_cell back 3 1)" "═|2|5|1" "double border should use continuous horizontal edge in unicode mode"

@@ -190,6 +190,10 @@ modal_render_text() {
     1 \
     1 \
     1 \
+    0 \
+    0 \
+    0 \
+    0 \
     modal_render_text_content \
     "${message}"
 }
@@ -243,6 +247,10 @@ modal_render_confirm() {
     1 \
     1 \
     1 \
+    0 \
+    0 \
+    0 \
+    0 \
     modal_render_confirm_content \
     "${message}" \
     "${confirm_label}" \

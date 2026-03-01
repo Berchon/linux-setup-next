@@ -5,6 +5,11 @@ app_shell_last_key=""
 app_shell_screen_width=0
 app_shell_screen_height=0
 app_shell_message_bar_text=""
+app_shell_last_clock_second=-1
+app_shell_content_x=0
+app_shell_content_y=0
+app_shell_content_width=0
+app_shell_content_height=0
 
 app_shell_is_positive_integer() {
   [[ "$1" =~ ^[1-9][0-9]*$ ]]
@@ -32,6 +37,18 @@ app_shell_theme_bool() {
 }
 
 app_shell_theme_int() {
+  local key="$1"
+  local fallback="$2"
+
+  if ! declare -F ui_state_get_config >/dev/null; then
+    printf '%s\n' "${fallback}"
+    return 0
+  fi
+
+  ui_state_get_config "${key}" "${fallback}"
+}
+
+app_shell_theme_string() {
   local key="$1"
   local fallback="$2"
 
@@ -218,13 +235,221 @@ app_shell_fill_back_row() {
   done
 }
 
+app_shell_compute_header_rect() {
+  local screen_width="$1"
+  local screen_height="$2"
+  local x=0
+  local y=1
+  local width=0
+  local height=5
+
+  if ! app_shell_is_positive_integer "${screen_width}" || ! app_shell_is_positive_integer "${screen_height}"; then
+    return 1
+  fi
+
+  if ((screen_width < 32 || screen_height < 10)); then
+    printf '0|0|0|0\n'
+    return 0
+  fi
+
+  width=$((screen_width * 80 / 100))
+  if ((width >= screen_width)); then
+    width=$((screen_width - 2))
+  fi
+
+  if ((width < 20)); then
+    printf '0|0|0|0\n'
+    return 0
+  fi
+
+  x=$(((screen_width - width) / 2))
+  if ((y + height >= screen_height - 1)); then
+    y=0
+  fi
+
+  if ((y + height >= screen_height - 1)); then
+    printf '0|0|0|0\n'
+    return 0
+  fi
+
+  printf '%s|%s|%s|%s\n' "${x}" "${y}" "${width}" "${height}"
+}
+
+app_shell_clock_text() {
+  if command -v date >/dev/null 2>&1; then
+    date '+%H:%M' 2>/dev/null || printf -- '--:--'
+    return 0
+  fi
+
+  printf -- '--:--'
+}
+
+app_shell_now_epoch_seconds() {
+  if command -v date >/dev/null 2>&1; then
+    date '+%s' 2>/dev/null || printf '0'
+    return 0
+  fi
+
+  printf '0'
+}
+
+app_shell_clock_tick_due() {
+  local now_seconds="$1"
+
+  if [[ "${app_shell_last_clock_second}" == "-1" ]]; then
+    app_shell_last_clock_second="${now_seconds}"
+    return 1
+  fi
+
+  if [[ "${now_seconds}" != "${app_shell_last_clock_second}" ]]; then
+    app_shell_last_clock_second="${now_seconds}"
+    return 0
+  fi
+
+  return 1
+}
+
+app_shell_render_header_content() {
+  local buffer_name="$1"
+  local x="$2"
+  local y="$3"
+  local width="$4"
+  local height="$5"
+  local title="$6"
+  local clock_text="$7"
+  local fg="$8"
+  local bg="$9"
+  local line=""
+  local title_text=""
+  local left_padding=0
+
+  if ((width <= 0 || height <= 0)); then
+    return 0
+  fi
+
+  printf -v line '%*s' "${width}" "${clock_text}"
+  line="${line:0:width}"
+  cell_buffer_write_text "${buffer_name}" "${x}" "${y}" "${line}" "${fg}" "${bg}" 0
+
+  if ((height < 2)); then
+    return 0
+  fi
+
+  title_text="${title:0:width}"
+  left_padding=$(((width - ${#title_text}) / 2))
+  if ((left_padding < 0)); then
+    left_padding=0
+  fi
+
+  printf -v line '%*s%s' "${left_padding}" '' "${title_text}"
+  printf -v line '%-*s' "${width}" "${line:0:width}"
+  cell_buffer_write_text "${buffer_name}" "${x}" "$((y + 1))" "${line}" "${fg}" "${bg}" 1
+}
+
+app_shell_render_footer_content() {
+  local buffer_name="$1"
+  local x="$2"
+  local y="$3"
+  local width="$4"
+  local height="$5"
+  local text="$6"
+  local fg="$7"
+  local bg="$8"
+  local line=""
+
+  if ((width <= 0 || height <= 0)); then
+    return 0
+  fi
+
+  printf -v line '%-*s' "${width}" " ${text}"
+  line="${line:0:width}"
+  cell_buffer_write_text "${buffer_name}" "${x}" "${y}" "${line}" "${fg}" "${bg}" 0
+}
+
+app_shell_compute_content_rect() {
+  local screen_width="$1"
+  local screen_height="$2"
+  local header_end_y="$3"
+  local x=0
+  local y=0
+  local width=0
+  local height=0
+
+  if ! app_shell_is_positive_integer "${screen_width}" || ! app_shell_is_positive_integer "${screen_height}"; then
+    return 1
+  fi
+
+  if ((screen_height <= 1)); then
+    printf '0|0|0|0\n'
+    return 0
+  fi
+
+  x=0
+  y=$((header_end_y + 1))
+  width="${screen_width}"
+  height=$((screen_height - y - 1))
+
+  if ((height <= 0)); then
+    printf '0|0|0|0\n'
+    return 0
+  fi
+
+  printf '%s|%s|%s|%s\n' "${x}" "${y}" "${width}" "${height}"
+}
+
+app_shell_render_header_shadow_tint() {
+  local x="$1"
+  local y="$2"
+  local width="$3"
+  local height="$4"
+  local pattern_id="$5"
+  local wallpaper_fg="$6"
+  local wallpaper_bg="$7"
+  local dx="${8:-2}"
+  local dy="${9:-1}"
+  local shadow_fg=0
+  local shadow_bg=0
+
+  if ! declare -F background_render_region >/dev/null; then
+    return 0
+  fi
+
+  if ((dx <= 0 || dy <= 0)); then
+    return 0
+  fi
+
+  shadow_fg="${wallpaper_fg}"
+  shadow_bg="${wallpaper_bg}"
+  if declare -F shadow_darken_color >/dev/null; then
+    shadow_fg="$(shadow_darken_color "${wallpaper_fg}")"
+    shadow_bg="$(shadow_darken_color "${wallpaper_bg}")"
+  fi
+
+  background_render_region back \
+    "$((x + width))" \
+    "$((y + dy))" \
+    "${dx}" \
+    "${height}" \
+    "${pattern_id}" \
+    "${shadow_fg}" \
+    "${shadow_bg}" \
+    0
+
+  background_render_region back \
+    "$((x + dx))" \
+    "$((y + height))" \
+    "${width}" \
+    "${dy}" \
+    "${pattern_id}" \
+    "${shadow_fg}" \
+    "${shadow_bg}" \
+    0
+}
+
 app_shell_mark_base_layout_dirty_regions() {
   local wallpaper_full_fill="$1"
   local width="$2"
   local height="$3"
-  local center_y=1
-  local center_height=0
-  local center_bottom=0
 
   if [[ "${wallpaper_full_fill}" == "1" ]]; then
     dirty_regions_add 0 0 "${width}" "${height}"
@@ -236,80 +461,163 @@ app_shell_mark_base_layout_dirty_regions() {
   if ((height > 1)); then
     dirty_regions_add 0 "$((height - 1))" "${width}" 1
   fi
-
-  if ((height > 2)); then
-    center_height=$((height - 2))
-    center_bottom=$((center_y + center_height - 1))
-
-    dirty_regions_add 0 "${center_y}" "${width}" 1
-    dirty_regions_add 0 "${center_bottom}" "${width}" 1
-
-    if ((center_height > 2)); then
-      dirty_regions_add 0 "$((center_y + 1))" 1 "$((center_height - 2))"
-      if ((width > 1)); then
-        dirty_regions_add "$((width - 1))" "$((center_y + 1))" 1 "$((center_height - 2))"
-      fi
-    fi
-  fi
 }
 
 app_shell_render_base_layout() {
   local wallpaper_enabled=0
-  local wallpaper_fg=7
-  local wallpaper_bg=0
+  local wallpaper_fg=15
+  local wallpaper_bg=12
   local header_fg=15
   local header_bg=4
-  local footer_fg=15
-  local footer_bg=0
-  local center_y=1
-  local center_height=0
-  local header_text=" linux-setup-next "
-  local footer_text=""
+  local footer_fg=12
+  local footer_bg=15
+  local header_title="Linux - Setup & Configuration"
+  local header_clock_text=""
+  local header_rect=""
+  local header_x=0
+  local header_y=0
+  local header_width=0
+  local header_height=0
+  local content_rect=""
+  local content_anchor_y=0
   local wallpaper_requires_full_fill=0
-  local y=0
+  local wallpaper_pattern_id="default"
 
   if ! declare -F cell_buffer_write_text >/dev/null || ! declare -F diff_renderer_render_dirty >/dev/null || ! declare -F dirty_regions_add >/dev/null; then
     return 0
   fi
 
-  wallpaper_enabled="$(app_shell_theme_bool "theme.wallpaper.enabled" "true")"
-  wallpaper_fg="$(app_shell_theme_int "theme.wallpaper.fg" "7")"
-  wallpaper_bg="$(app_shell_theme_int "theme.wallpaper.bg" "0")"
-  header_fg="$(app_shell_theme_int "theme.header.fg" "15")"
-  header_bg="$(app_shell_theme_int "theme.header.bg" "4")"
-  footer_fg="$(app_shell_theme_int "theme.footer.fg" "15")"
-  footer_bg="$(app_shell_theme_int "theme.footer.bg" "0")"
+  if declare -F background_ensure_patterns_loaded >/dev/null; then
+    background_ensure_patterns_loaded || true
+  fi
 
-  if [[ "${wallpaper_enabled}" == "1" ]]; then
-    if [[ "${wallpaper_fg}" != "7" ]] || [[ "${wallpaper_bg}" != "0" ]]; then
-      wallpaper_requires_full_fill=1
+  wallpaper_enabled="$(app_shell_theme_bool "theme.wallpaper.enabled" "true")"
+  wallpaper_fg="$(app_shell_theme_int "theme.wallpaper.fg" "15")"
+  wallpaper_bg="$(app_shell_theme_int "theme.wallpaper.bg" "12")"
+  wallpaper_pattern_id="$(app_shell_theme_string "theme.wallpaper.pattern" "default")"
+  header_fg="$(app_shell_theme_int "theme.header.fg" "12")"
+  header_bg="$(app_shell_theme_int "theme.header.bg" "15")"
+  footer_fg="$(app_shell_theme_int "theme.footer.fg" "12")"
+  footer_bg="$(app_shell_theme_int "theme.footer.bg" "15")"
+
+  if [[ "${wallpaper_enabled}" == "1" ]] && declare -F background_render_screen >/dev/null; then
+    background_render_screen \
+      back \
+      "${app_shell_screen_width}" \
+      "${app_shell_screen_height}" \
+      "${wallpaper_pattern_id}" \
+      "${wallpaper_fg}" \
+      "${wallpaper_bg}" \
+      0
+    wallpaper_requires_full_fill=1
+  fi
+
+  header_rect="$(app_shell_compute_header_rect "${app_shell_screen_width}" "${app_shell_screen_height}")"
+  IFS='|' read -r header_x header_y header_width header_height <<< "${header_rect}"
+  header_clock_text="$(app_shell_clock_text)"
+
+  if ((header_width > 0 && header_height > 0)) && declare -F panel_render_with_content >/dev/null; then
+    panel_render_with_content \
+      back \
+      "${header_x}" \
+      "${header_y}" \
+      "${header_width}" \
+      "${header_height}" \
+      " " \
+      "${header_fg}" \
+      "${header_bg}" \
+      0 \
+      single \
+      "" \
+      1 \
+      2 \
+      1 \
+      "." \
+      "${wallpaper_fg}" \
+      "${wallpaper_bg}" \
+      0 \
+      0 \
+      1 \
+      0 \
+      1 \
+      0 \
+      1 \
+      0 \
+      1 \
+      app_shell_render_header_content \
+      "${header_title}" \
+      "${header_clock_text}" \
+      "${header_fg}" \
+      "${header_bg}"
+
+    app_shell_render_header_shadow_tint \
+      "${header_x}" \
+      "${header_y}" \
+      "${header_width}" \
+      "${header_height}" \
+      "${wallpaper_pattern_id}" \
+      "${wallpaper_fg}" \
+      "${wallpaper_bg}" \
+      2 \
+      1
+
+    content_anchor_y=$((header_y + header_height))
+  else
+    app_shell_fill_back_row 0 "${app_shell_screen_width}" "${header_fg}" "${header_bg}" 1
+    cell_buffer_write_text back 0 0 "${header_title:0:${app_shell_screen_width}}" "${header_fg}" "${header_bg}" 1
+    content_anchor_y=0
+  fi
+
+  content_rect="$(app_shell_compute_content_rect "${app_shell_screen_width}" "${app_shell_screen_height}" "${content_anchor_y}")"
+  IFS='|' read -r app_shell_content_x app_shell_content_y app_shell_content_width app_shell_content_height <<< "${content_rect}"
+
+  if ((app_shell_screen_height > 0)); then
+    if ((app_shell_screen_width > 0)) && declare -F panel_render_with_content >/dev/null; then
+      panel_render_with_content \
+        back \
+        0 \
+        "$((app_shell_screen_height - 1))" \
+        "${app_shell_screen_width}" \
+        1 \
+        " " \
+        "${footer_fg}" \
+        "${footer_bg}" \
+        0 \
+        none \
+        "" \
+        0 \
+        2 \
+        1 \
+        "." \
+        "${wallpaper_fg}" \
+        "${wallpaper_bg}" \
+        0 \
+        0 \
+        0 \
+        0 \
+        0 \
+        0 \
+        0 \
+        0 \
+        0 \
+        app_shell_render_footer_content \
+        "${app_shell_message_bar_text}" \
+        "${footer_fg}" \
+        "${footer_bg}"
+    else
+      app_shell_fill_back_row "$((app_shell_screen_height - 1))" "${app_shell_screen_width}" "${footer_fg}" "${footer_bg}" 0
+      cell_buffer_write_text back 0 "$((app_shell_screen_height - 1))" " ${app_shell_message_bar_text}" "${footer_fg}" "${footer_bg}" 0
     fi
   fi
 
   if [[ "${wallpaper_requires_full_fill}" == "1" ]]; then
-    for ((y = 0; y < app_shell_screen_height; y++)); do
-      app_shell_fill_back_row "${y}" "${app_shell_screen_width}" "${wallpaper_fg}" "${wallpaper_bg}" 0
-    done
+    dirty_regions_add 0 0 "${app_shell_screen_width}" "${app_shell_screen_height}"
+  else
+    app_shell_mark_base_layout_dirty_regions \
+      "${wallpaper_requires_full_fill}" \
+      "${app_shell_screen_width}" \
+      "${app_shell_screen_height}"
   fi
-
-  app_shell_fill_back_row 0 "${app_shell_screen_width}" "${header_fg}" "${header_bg}" 1
-  cell_buffer_write_text back 0 0 "${header_text:0:${app_shell_screen_width}}" "${header_fg}" "${header_bg}" 1
-
-  if ((app_shell_screen_height > 2)); then
-    center_height=$((app_shell_screen_height - 2))
-    app_shell_draw_back_box_border 0 "${center_y}" "${app_shell_screen_width}" "${center_height}" "${header_fg}" "${wallpaper_bg}" 0 "Main"
-  fi
-
-  if ((app_shell_screen_height > 1)); then
-    app_shell_fill_back_row "$((app_shell_screen_height - 1))" "${app_shell_screen_width}" "${footer_fg}" "${footer_bg}" 0
-    footer_text=" ${app_shell_message_bar_text}"
-    cell_buffer_write_text back 0 "$((app_shell_screen_height - 1))" "${footer_text:0:${app_shell_screen_width}}" "${footer_fg}" "${footer_bg}" 0
-  fi
-
-  app_shell_mark_base_layout_dirty_regions \
-    "${wallpaper_requires_full_fill}" \
-    "${app_shell_screen_width}" \
-    "${app_shell_screen_height}"
   diff_renderer_render_dirty 1
 }
 
@@ -371,7 +679,10 @@ app_shell_default_message_bar() {
 }
 
 app_shell_run() {
+  local now_seconds=0
+
   app_shell_running=1
+  app_shell_last_clock_second=-1
   app_shell_set_message_bar "$(app_shell_default_message_bar)"
 
   app_shell_sync_viewport 1 || return 1
@@ -393,6 +704,11 @@ app_shell_run() {
     if app_shell_read_key; then
       app_shell_handle_key "${app_shell_last_key}"
       continue
+    fi
+
+    now_seconds="$(app_shell_now_epoch_seconds)"
+    if app_shell_clock_tick_due "${now_seconds}"; then
+      app_shell_render_base_layout || return 1
     fi
   done
 }
