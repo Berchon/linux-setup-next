@@ -80,7 +80,7 @@ app_shell_render_base_layout
 assert_eq "$(cell_buffer_get_cell front 5 1)" "+|12|15|0" "header should render panel border with legacy light blue on white"
 assert_eq "$(cell_buffer_get_cell front 7 3)" "L|12|15|1" "header should render centered title text"
 assert_eq "$(cell_buffer_get_cell front 0 7)" "+|12|0|0" "central area should render panel border below header"
-assert_eq "$(cell_buffer_get_cell front 4 1)" ".|7|0|0" "background should keep one-cell horizontal margin around header border"
+assert_eq "$(cell_buffer_get_cell front 4 1)" " |12|15|0" "header horizontal margin should be filled with panel background color"
 assert_eq "$(cell_buffer_get_cell front 1 11)" "b|15|0|0" "footer should render message bar text"
 assert_contains "${ansi_output}" $'\033[1;1H' "diff renderer should emit cursor movement for layout draw"
 

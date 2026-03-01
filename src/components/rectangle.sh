@@ -389,7 +389,7 @@ rectangle_render() {
     return 0
   fi
 
-  if ! rectangle_render_fill "${buffer_name}" "${draw_x}" "${draw_y}" "${draw_width}" "${draw_height}" "${fill_char}" "${fg}" "${bg}" "${bold}"; then
+  if ! rectangle_render_fill "${buffer_name}" "${x}" "${y}" "${width}" "${height}" "${fill_char}" "${fg}" "${bg}" "${bold}"; then
     return 1
   fi
 

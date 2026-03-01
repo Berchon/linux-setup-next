@@ -51,10 +51,10 @@ assert_eq "$(cell_buffer_get_cell back 3 2)" ".|2|5|1" "single border should pre
 
 cell_buffer_init 10 5
 rectangle_render back 1 1 8 3 "." 2 5 1 single "" 0 1 0 1
-assert_eq "$(cell_buffer_get_cell back 1 1)" " |7|0|0" "left margin should keep one untouched cell outside bordered area"
+assert_eq "$(cell_buffer_get_cell back 1 1)" ".|2|5|1" "left margin should be filled while border is inset"
 assert_eq "$(cell_buffer_get_cell back 2 1)" "┌|2|5|1" "border should start after left margin"
 assert_eq "$(cell_buffer_get_cell back 7 1)" "┐|2|5|1" "border should end before right margin"
-assert_eq "$(cell_buffer_get_cell back 8 1)" " |7|0|0" "right margin should keep one untouched cell outside bordered area"
+assert_eq "$(cell_buffer_get_cell back 8 1)" ".|2|5|1" "right margin should be filled while border is inset"
 
 cell_buffer_init 8 5
 rectangle_render back 1 1 6 3 "." 2 5 1 double
