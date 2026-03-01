@@ -248,6 +248,8 @@ Objetivo: entregar a aplicação rodando fim a fim com comportamento equivalente
 ### H9.2 - Componente de background por padrão
 - T9.2.1 Criar componente `Background` com renderização por padrão repetível (tile) em região configurável da tela.
 - T9.2.2 Atualizar o `Header` para paridade visual com a referência do `Footer`: painel retangular com fundo branco e texto em azul claro, respeitando margens/espacamentos do mock de referência, com sombra que escurece o background abaixo sem perder o padrão base.
+- T9.2.3 Tornar a área de `content` neutra no layout base (sem borda, título ou ornamentos), reservando o retângulo apenas como viewport para componentes.
+- T9.2.4 Renderizar o `Footer` como `Panel` de 1 linha e 100% da largura, sem borda/sombra/margem/padding, com texto e cores vindos de `theme.footer.fg/bg` (defaults alinhados visualmente ao `Header`).
 
 ### H9.3 - Menu principal e submenus em tela real
 - T9.3.1 Conectar modelo de menu ao render da tela principal.
