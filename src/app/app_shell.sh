@@ -349,9 +349,11 @@ app_shell_render_header_shadow_tint() {
   local height="$4"
   local pattern_id="$5"
   local wallpaper_fg="$6"
-  local shadow_bg="$7"
+  local wallpaper_bg="$7"
   local dx="${8:-2}"
   local dy="${9:-1}"
+  local shadow_fg=0
+  local shadow_bg=0
 
   if ! declare -F background_render_region >/dev/null; then
     return 0
@@ -361,13 +363,20 @@ app_shell_render_header_shadow_tint() {
     return 0
   fi
 
+  shadow_fg="${wallpaper_fg}"
+  shadow_bg="${wallpaper_bg}"
+  if declare -F shadow_darken_color >/dev/null; then
+    shadow_fg="$(shadow_darken_color "${wallpaper_fg}")"
+    shadow_bg="$(shadow_darken_color "${wallpaper_bg}")"
+  fi
+
   background_render_region back \
     "$((x + width))" \
     "$((y + dy))" \
     "${dx}" \
     "${height}" \
     "${pattern_id}" \
-    "${wallpaper_fg}" \
+    "${shadow_fg}" \
     "${shadow_bg}" \
     0
 
@@ -377,7 +386,7 @@ app_shell_render_header_shadow_tint() {
     "${width}" \
     "${dy}" \
     "${pattern_id}" \
-    "${wallpaper_fg}" \
+    "${shadow_fg}" \
     "${shadow_bg}" \
     0
 }
@@ -435,7 +444,6 @@ app_shell_render_base_layout() {
   local header_y=0
   local header_width=0
   local header_height=0
-  local header_shadow_bg=8
   local footer_text=""
   local wallpaper_requires_full_fill=0
   local wallpaper_pattern_id="default"
@@ -491,7 +499,7 @@ app_shell_render_base_layout() {
       1 \
       "." \
       "${wallpaper_fg}" \
-      "${header_shadow_bg}" \
+      "${wallpaper_bg}" \
       0 \
       0 \
       1 \
@@ -514,7 +522,7 @@ app_shell_render_base_layout() {
       "${header_height}" \
       "${wallpaper_pattern_id}" \
       "${wallpaper_fg}" \
-      "${header_shadow_bg}" \
+      "${wallpaper_bg}" \
       2 \
       1
 
