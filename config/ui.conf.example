@@ -1,7 +1,7 @@
 # UI theme and behavior defaults for linux-setup-next V1.
 theme.wallpaper.enabled=true
-theme.wallpaper.fg=7
-theme.wallpaper.bg=0
+theme.wallpaper.fg=15
+theme.wallpaper.bg=12
 theme.menu.fg=15
 theme.menu.bg=4
 theme.menu.border_style=single

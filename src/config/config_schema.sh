@@ -41,8 +41,8 @@ config_schema_init() {
   config_schema_initialized=1
 
   config_schema_define_key "theme.wallpaper.enabled" "true" "bool" "" "" ""
-  config_schema_define_key "theme.wallpaper.fg" "7" "int" "" "0" "255"
-  config_schema_define_key "theme.wallpaper.bg" "0" "int" "" "0" "255"
+  config_schema_define_key "theme.wallpaper.fg" "15" "int" "" "0" "255"
+  config_schema_define_key "theme.wallpaper.bg" "12" "int" "" "0" "255"
   config_schema_define_key "theme.menu.fg" "15" "int" "" "0" "255"
   config_schema_define_key "theme.menu.bg" "4" "int" "" "0" "255"
   config_schema_define_key "theme.menu.border_style" "single" "enum" "none|single|double" "" ""

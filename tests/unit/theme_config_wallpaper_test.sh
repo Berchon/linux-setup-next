@@ -37,7 +37,7 @@ config_loader_reset_raw
 config_schema_resolve_from_raw
 
 assert_eq "$(theme_config_wallpaper_enabled)" "1" "wallpaper enabled should default to true"
-assert_eq "$(theme_config_wallpaper_fg)" "7" "wallpaper fg should fallback to default"
-assert_eq "$(theme_config_wallpaper_bg)" "0" "wallpaper bg should fallback to default"
+assert_eq "$(theme_config_wallpaper_fg)" "15" "wallpaper fg should fallback to default"
+assert_eq "$(theme_config_wallpaper_bg)" "12" "wallpaper bg should fallback to default"
 
 printf "PASS: theme wallpaper config tests\n"

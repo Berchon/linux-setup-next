@@ -26,11 +26,11 @@ theme_config_wallpaper_enabled() {
 }
 
 theme_config_wallpaper_fg() {
-  theme_config_get_int "theme.wallpaper.fg" "7"
+  theme_config_get_int "theme.wallpaper.fg" "15"
 }
 
 theme_config_wallpaper_bg() {
-  theme_config_get_int "theme.wallpaper.bg" "0"
+  theme_config_get_int "theme.wallpaper.bg" "12"
 }
 
 theme_config_menu_fg() {

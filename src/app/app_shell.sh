@@ -419,8 +419,8 @@ app_shell_mark_base_layout_dirty_regions() {
 
 app_shell_render_base_layout() {
   local wallpaper_enabled=0
-  local wallpaper_fg=7
-  local wallpaper_bg=0
+  local wallpaper_fg=15
+  local wallpaper_bg=12
   local header_fg=15
   local header_bg=4
   local footer_fg=15
@@ -449,8 +449,8 @@ app_shell_render_base_layout() {
   fi
 
   wallpaper_enabled="$(app_shell_theme_bool "theme.wallpaper.enabled" "true")"
-  wallpaper_fg="$(app_shell_theme_int "theme.wallpaper.fg" "7")"
-  wallpaper_bg="$(app_shell_theme_int "theme.wallpaper.bg" "0")"
+  wallpaper_fg="$(app_shell_theme_int "theme.wallpaper.fg" "15")"
+  wallpaper_bg="$(app_shell_theme_int "theme.wallpaper.bg" "12")"
   wallpaper_pattern_id="$(app_shell_theme_string "theme.wallpaper.pattern" "default")"
   header_fg="$(app_shell_theme_int "theme.header.fg" "12")"
   header_bg="$(app_shell_theme_int "theme.header.bg" "15")"
